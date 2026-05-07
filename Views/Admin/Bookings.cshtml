@@ -1,0 +1,102 @@
+@model Tourbooking.ViewModels.AdminBookingsViewModel
+
+@{
+    ViewData["Title"] = "Bookings";
+    Layout = "_AdminBookingsLayout";
+}
+
+<section class="bookings-hero">
+    <div>
+        <h1>Booking Management</h1>
+        <p>Review and manage recent tour reservations across all curators.</p>
+    </div>
+    <button class="primary-action" type="button">Export CSV</button>
+</section>
+
+<section class="stat-grid">
+    <article class="stat-card">
+        <div class="stat-title">
+            <div class="stat-icon">BK</div>
+            Total Bookings
+        </div>
+        <div class="stat-value">@Model.TotalBookings</div>
+        <div class="stat-meta">+12% this month</div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-title">
+            <div class="stat-icon">RV</div>
+            Revenue
+        </div>
+        <div class="stat-value">@Model.Revenue</div>
+        <div class="stat-meta">+8% vs last month</div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-title">
+            <div class="stat-icon">AT</div>
+            Active Tours
+        </div>
+        <div class="stat-value">@Model.ActiveTours</div>
+        <div class="stat-meta">Across 14 countries</div>
+    </article>
+    <article class="stat-card">
+        <div class="stat-title">
+            <div class="stat-icon">AG</div>
+            Avg. Group Size
+        </div>
+        <div class="stat-value">@Model.AverageGroupSize</div>
+        <div class="stat-meta">Personalized travel</div>
+    </article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-header">
+        <div>
+            <h3>Recent Bookings</h3>
+            <p>Latest activity across the booking pipeline</p>
+        </div>
+        <div class="table-actions">
+            <button type="button">Filter</button>
+            <button type="button">Sort</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Tour Name</th>
+                    <th>Date</th>
+                    <th>Qty</th>
+                    <th>Total Price</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var booking in Model.RecentBookings)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar">@booking.CustomerInitials</div>
+                                <div class="user-meta">
+                                    <strong>@booking.CustomerName</strong>
+                                    <span>@booking.CustomerEmail</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-title">@booking.TourName</div>
+                        </td>
+                        <td>@booking.Date</td>
+                        <td>@booking.Quantity</td>
+                        <td class="table-strong">@booking.TotalPrice</td>
+                        <td>
+                            <span class="status-pill @booking.Status.ToLower()">@booking.Status</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

@@ -1,0 +1,103 @@
+@model Tourbooking.ViewModels.AdminToursViewModel
+
+@{
+    ViewData["Title"] = "Tours";
+    Layout = "_AdminLayout";
+}
+
+<section class="dashboard-hero">
+    <div>
+        <h1>Tour Management</h1>
+        <p>Manage and curate your world-class travel experiences.</p>
+    </div>
+    <a asp-controller="Tours" asp-action="Create" class="primary-action">+ Add New Tour</a>
+</section>
+
+<section class="stat-grid">
+    <article class="stat-card">
+        <div class="stat-icon">TO</div>
+        <div>
+            <p>Active Tours</p>
+            <h2>@Model.TotalTours</h2>
+        </div>
+        <span class="stat-badge">+6%</span>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon">DS</div>
+        <div>
+            <p>Destinations</p>
+            <h2>@Model.Destinations</h2>
+        </div>
+        <span class="stat-badge">+3%</span>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon">BR</div>
+        <div>
+            <p>Avg. Booking Rate</p>
+            <h2>@Model.AverageBookingRate%</h2>
+        </div>
+        <span class="stat-badge">Stable</span>
+    </article>
+</section>
+
+<section class="panel-card">
+    <div class="panel-header">
+        <div>
+            <h3>Active Listings</h3>
+            <p>Latest tours currently visible to customers</p>
+        </div>
+        <div class="table-actions">
+            <button type="button">Filter</button>
+            <button type="button">Export CSV</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Tour Name</th>
+                    <th>Location</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var tour in Model.Tours)
+                {
+                    <tr>
+                        <td>
+                            <div class="tour-cell">
+                                @if (!string.IsNullOrWhiteSpace(tour.ImageUrl))
+                                {
+                                    <img class="tour-thumb" src="@tour.ImageUrl" alt="@tour.Name" />
+                                }
+                                else
+                                {
+                                    <div class="tour-thumb"></div>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-title">@tour.Name</div>
+                            <span class="table-subtitle">ID: TR-@tour.TourId</span>
+                        </td>
+                        <td>@tour.Location</td>
+                        <td class="table-strong">@tour.Price</td>
+                        <td>
+                            <span class="status-pill confirmed">@tour.Status</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a asp-controller="Tours" asp-action="Edit" asp-route-id="@tour.TourId" title="Edit">✎</a>
+                                <a asp-controller="Tours" asp-action="Delete" asp-route-id="@tour.TourId" title="Delete">🗑</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

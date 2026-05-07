@@ -1,0 +1,96 @@
+@model Tourbooking.ViewModels.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login - Tourbooking";
+    Layout = "_LayoutLogin";
+}
+
+<link rel="stylesheet" href="~/css/login.css" />
+
+<div class="login-container">
+    <div class="login-content">
+        <!-- Left Side: Background -->
+        <div class="login-side login-left">
+            <div class="login-overlay">
+                <h1>Voyager</h1>
+                <p>Curating your journey through the world's most atmospheric landscapes.</p>
+                
+                <div class="inspiration">
+                    <p class="quote">"Travel is the only thing you buy that makes you richer."</p>
+                    <div class="author-info">
+                        <img src="https://via.placeholder.com/40" alt="Author" class="author-avatar">
+                        <span>Elena S, Head Curator</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="login-side login-right">
+            <div class="login-form-wrapper">
+                <h2>Welcome back</h2>
+                <p class="subtitle">Please enter your details to access your dashboard.</p>
+
+                <form asp-action="Login" asp-controller="Account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Email Input -->
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                           <input asp-for="Email" class="form-control" placeholder="e.g. wanderer@voyager.com" />
+                           <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password Input -->
+                    <div class="form-group">
+                        <div class="password-header">
+                            <label for="password">Password</label>
+                            <a href="#" class="forgot-password">Forgot Password?</a>
+                        </div>
+                           <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                           <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="form-group checkbox-group">
+                        <input asp-for="RememberMe" />
+                        <label asp-for="RememberMe">Keep me signed in for 30 days</label>
+                    </div>
+
+                    <!-- Sign In Button -->
+                    <button type="submit" class="btn-signin">Sign in to Voyager</button>
+
+                    <!-- Divider -->
+                    <div class="divider">Or continue with</div>
+
+                    <!-- Social Login -->
+                    <div class="social-login">
+                        <a href="#" class="social-btn google-btn">
+                            <img src="https://www.google.com/favicon.ico" alt="Google">
+                            Google
+                        </a>
+                        <a href="#" class="social-btn apple-btn">
+                            <img src="https://www.apple.com/favicon.ico" alt="Apple">
+                            Apple
+                        </a>
+                    </div>
+
+                    <!-- Sign Up Link -->
+                    <p class="signup-link">
+                        Don't have an account? <a asp-action="Register" asp-controller="Account">Sign Up</a>
+                    </p>
+                </form>
+
+                <!-- Footer -->
+                <div class="login-footer">
+                    <p>© 2024 The Financial Voyager. All rights reserved.</p>
+                    <div class="footer-links">
+                        <a href="#">Privacy Policy</a>
+                        <span>•</span>
+                        <a href="#">Terms</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

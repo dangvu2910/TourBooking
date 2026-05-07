@@ -1,0 +1,259 @@
+:root {
+    --tour-primary: #0d5bd8;
+    --tour-text: #111827;
+    --tour-muted: #6b7280;
+    --tour-surface: #f4f5f7;
+}
+
+.tours-page {
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    background: var(--tour-surface);
+    padding: 34px 0 70px;
+    color: var(--tour-text);
+}
+
+.tours-shell {
+    width: min(1240px, calc(100% - 48px));
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 270px 1fr;
+    gap: 28px;
+}
+
+.filters-panel {
+    padding: 10px 4px;
+}
+
+.filters-panel h3 {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+}
+
+.filter-block {
+    margin-bottom: 28px;
+}
+
+.filter-title {
+    color: var(--tour-primary);
+    font-size: .78rem;
+    letter-spacing: .08em;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.filter-block label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: #364152;
+    font-size: .95rem;
+}
+
+.filter-block input[type="range"] {
+    width: 100%;
+}
+
+.range-values {
+    display: flex;
+    justify-content: space-between;
+    color: var(--tour-muted);
+    font-size: .82rem;
+}
+
+.duration-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.chip {
+    border: 1px solid #d4d9e2;
+    background: #fff;
+    color: #334155;
+    border-radius: 999px;
+    font-size: .8rem;
+    padding: 7px 12px;
+}
+
+.chip.active {
+    border-color: var(--tour-primary);
+    background: var(--tour-primary);
+    color: #fff;
+}
+
+.tours-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.tours-head h1 {
+    font-size: clamp(2rem, 4vw, 3.25rem);
+    margin: 0;
+    font-weight: 800;
+}
+
+.tours-head p {
+    margin: 4px 0 0;
+    color: var(--tour-muted);
+}
+
+.sort-box {
+    min-width: 180px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: #334155;
+    font-size: .9rem;
+}
+
+.sort-box strong {
+    color: var(--tour-primary);
+}
+
+.tours-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.tour-card {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.tour-image {
+    height: 250px;
+    background: #e6e9ef;
+}
+
+.tour-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    color: #64748b;
+    font-size: .9rem;
+}
+
+.tour-info {
+    padding: 16px;
+}
+
+.tour-info h3 {
+    margin: 0 0 10px;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.2;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.tour-info h3 span {
+    color: var(--tour-primary);
+    font-size: .95rem;
+    white-space: nowrap;
+}
+
+.tour-info p {
+    margin: 0;
+    min-height: 64px;
+    color: var(--tour-muted);
+    font-size: .93rem;
+}
+
+.tour-price {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.tour-price small {
+    display: block;
+    color: #9aa4b2;
+    letter-spacing: .08em;
+    font-weight: 700;
+    font-size: .68rem;
+}
+
+.tour-price strong {
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.tour-price a {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #cfd6e3;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #1f2937;
+    font-size: 1.2rem;
+}
+
+.pagination-ui {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 26px;
+}
+
+.pagination-ui button {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid #d4d9e2;
+    background: #fff;
+    color: #334155;
+}
+
+.pagination-ui button.active {
+    background: var(--tour-primary);
+    border-color: var(--tour-primary);
+    color: #fff;
+}
+
+@media (max-width: 1100px) {
+    .tours-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .tours-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .tours-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tours-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

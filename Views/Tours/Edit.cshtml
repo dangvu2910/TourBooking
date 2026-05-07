@@ -1,0 +1,89 @@
+﻿@model Tour
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Tour</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Edit" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="TourId" />
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Location" class="control-label"></label>
+                <input asp-for="Location" class="form-control" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Price" class="control-label"></label>
+                <input asp-for="Price" class="form-control" type="number" step="0.01" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <input asp-for="Description" class="form-control" />
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Hình ảnh hiện tại</label>
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div style="margin-bottom: 10px;">
+                        <img src="@Model.ImageUrl" alt="Current Image" style="max-width: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+                    </div>
+                }
+            </div>
+            <div class="form-group">
+                <label class="control-label">Thay đổi hình ảnh</label>
+                <input type="file" id="imageFile" name="imageFile" class="form-control" accept="image/*" />
+                <small class="form-text text-muted">Để trống nếu không muốn thay đổi hình ảnh</small>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Preview hình ảnh mới</label>
+                <div id="imagePreview" style="margin-top: 10px;">
+                    <img id="previewImage" src="" alt="Preview" style="max-width: 300px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+                </div>
+            </div>
+            <input type="hidden" asp-for="ImageUrl" id="imageUrlInput" />
+            <div class="form-group">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <input asp-for="CategoryId" class="form-control" />
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = event.target.result;
+                    previewImage.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}

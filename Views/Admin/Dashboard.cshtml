@@ -1,0 +1,135 @@
+@model Tourbooking.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<section class="dashboard-hero">
+    <div>
+        <h1>Dashboard Overview</h1>
+        <p>Welcome back, Curator. Here is what is happening across your travel ecosystem today.</p>
+    </div>
+    <div class="status-chip">Active Now</div>
+</section>
+
+<section class="stat-grid">
+    <article class="stat-card">
+        <div class="stat-icon">TO</div>
+        <div>
+            <p>Total Tours</p>
+            <h2>@Model.TotalTours</h2>
+        </div>
+        <span class="stat-badge">+12%</span>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon">BK</div>
+        <div>
+            <p>Total Bookings</p>
+            <h2>@Model.TotalBookings</h2>
+        </div>
+        <span class="stat-badge">+24%</span>
+    </article>
+    <article class="stat-card">
+        <div class="stat-icon">US</div>
+        <div>
+            <p>Total Users</p>
+            <h2>@Model.TotalUsers</h2>
+        </div>
+        <span class="stat-badge">+9%</span>
+    </article>
+</section>
+
+<section class="dashboard-grid">
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <h3>Booking Trends</h3>
+                <p>Monthly overview of confirmed reservations</p>
+            </div>
+            <div class="segmented">
+                <button class="is-active" type="button">Monthly</button>
+                <button type="button">Weekly</button>
+            </div>
+        </div>
+        <div class="chart-wrap">
+            <div class="bar" style="height: 48%"><span>Jan</span></div>
+            <div class="bar" style="height: 64%"><span>Feb</span></div>
+            <div class="bar" style="height: 54%"><span>Mar</span></div>
+            <div class="bar is-peak" style="height: 82%"><span>Apr</span></div>
+            <div class="bar" style="height: 58%"><span>May</span></div>
+            <div class="bar" style="height: 72%"><span>Jun</span></div>
+        </div>
+    </article>
+
+    <article class="panel-card">
+        <div class="panel-header">
+            <div>
+                <h3>Recent Activity</h3>
+                <p>Latest platform alerts and events</p>
+            </div>
+            <a class="panel-link" href="#">View all logs</a>
+        </div>
+        <div class="activity-list">
+            @foreach (var activity in Model.RecentActivities)
+            {
+                <div class="activity-item">
+                    <div class="activity-dot"></div>
+                    <div>
+                        <strong>@activity.Title</strong>
+                        <span>@activity.Description</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </article>
+</section>
+
+<section class="panel-card top-tours">
+    <div class="panel-header">
+        <div>
+            <h3>Top Performing Tours</h3>
+            <p>High impact listings with the most momentum</p>
+        </div>
+        <a class="panel-link" asp-controller="Tours" asp-action="Index">Manage all</a>
+    </div>
+
+    <div class="tour-cards">
+        @if (Model.TopTours.Any())
+        {
+            foreach (var tour in Model.TopTours)
+            {
+                <article class="tour-card">
+                    <div class="tour-image">
+                        @if (!string.IsNullOrWhiteSpace(tour.ImageUrl))
+                        {
+                            <img src="@tour.ImageUrl" alt="@tour.Name" />
+                        }
+                        else
+                        {
+                            <div class="tour-placeholder"></div>
+                        }
+                    </div>
+                    <div class="tour-body">
+                        <h4>@tour.Name</h4>
+                        <p>@tour.Location</p>
+                        <span>@tour.Metric</span>
+                    </div>
+                </article>
+            }
+        }
+        else
+        {
+            <article class="tour-card">
+                <div class="tour-image">
+                    <div class="tour-placeholder"></div>
+                </div>
+                <div class="tour-body">
+                    <h4>Sample Tour</h4>
+                    <p>Awaiting data</p>
+                    <span>$0</span>
+                </div>
+            </article>
+        }
+    </div>
+</section>

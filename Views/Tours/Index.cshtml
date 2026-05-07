@@ -1,0 +1,132 @@
+﻿@model IEnumerable<Tour>
+
+@{
+    ViewData["Title"] = "Tours - Voyager";
+    var tours = Model?.Take(6).ToList() ?? new List<Tour>();
+
+    // GÁN ẢNH TĨNH TẠI ĐÂY (nếu bạn muốn):
+    // Ví dụ: staticTourImage1 = "/images/tours/tour-1.jpg";
+    string staticTourImage1 = "";
+    string staticTourImage2 = "";
+    string staticTourImage3 = "";
+    string staticTourImage4 = "";
+    string staticTourImage5 = "";
+    string staticTourImage6 = "";
+
+    var staticImages = new[] { staticTourImage1, staticTourImage2, staticTourImage3, staticTourImage4, staticTourImage5, staticTourImage6 };
+}
+
+<link rel="stylesheet" href="~/css/tours.css" asp-append-version="true" />
+
+<div class="tours-page">
+    <div class="tours-shell">
+        <aside class="filters-panel">
+            <h3>☰ Filters</h3>
+
+            <div class="filter-block">
+                <p class="filter-title">LOCATION</p>
+                <label><input type="checkbox" checked /> Scandinavia</label>
+                <label><input type="checkbox" /> Mediterranean</label>
+                <label><input type="checkbox" /> Southeast Asia</label>
+                <label><input type="checkbox" /> South America</label>
+            </div>
+
+            <div class="filter-block">
+                <p class="filter-title">PRICE RANGE</p>
+                <input type="range" min="500" max="10000" value="3500" />
+                <div class="range-values">
+                    <span>$500</span>
+                    <span>$10,000</span>
+                </div>
+            </div>
+
+            <div class="filter-block">
+                <p class="filter-title">DURATION</p>
+                <div class="duration-chips">
+                    <button type="button" class="chip active">3-5 Days</button>
+                    <button type="button" class="chip">1-2 Weeks</button>
+                    <button type="button" class="chip">1 Month+</button>
+                </div>
+            </div>
+        </aside>
+
+        <section class="tours-content">
+            <div class="tours-head">
+                <div>
+                    <h1>Curated Journeys</h1>
+                    <p>Discover @Model.Count() exclusive experiences tailored for you.</p>
+                </div>
+                <div class="sort-box">
+                    <span>Sort by:</span>
+                    <strong>Recommended</strong>
+                </div>
+            </div>
+
+            <div class="tours-grid">
+                @if (tours.Any())
+                {
+                    @for (var i = 0; i < tours.Count; i++)
+                    {
+                        var item = tours[i];
+                        var displayImage = !string.IsNullOrWhiteSpace(staticImages[i])
+                            ? staticImages[i]
+                            : item.ImageUrl;
+
+                        <article class="tour-card">
+                            <div class="tour-image">
+                                @if (!string.IsNullOrWhiteSpace(displayImage))
+                                {
+                                    <img src="@displayImage" alt="@item.Name" />
+                                }
+                                else
+                                {
+                                    <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
+                                }
+                            </div>
+                            <div class="tour-info">
+                                <h3>@item.Name <span>★ 4.8</span></h3>
+                                <p>@item.Description</p>
+                                <div class="tour-price">
+                                    <small>STARTING AT</small>
+                                    <strong>$@item.Price</strong>
+                                    <a asp-action="Details" asp-route-id="@item.TourId">→</a>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                }
+                else
+                {
+                    @for (var i = 0; i < 6; i++)
+                    {
+                        <article class="tour-card">
+                            <div class="tour-image">
+                                <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
+                            </div>
+                            <div class="tour-info">
+                                <h3>Tour title @(i + 1) <span>★ 0.0</span></h3>
+                                <p>Mô tả tour sẽ hiển thị tại đây.</p>
+                                <div class="tour-price">
+                                    <small>STARTING AT</small>
+                                    <strong>$0</strong>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a asp-action="Create">→</a>
+                                    }
+                                </div>
+                            </div>
+                        </article>
+                    }
+                }
+            </div>
+
+            <div class="pagination-ui">
+                <button type="button">‹</button>
+                <button type="button" class="active">1</button>
+                <button type="button">2</button>
+                <button type="button">3</button>
+                <button type="button">›</button>
+            </div>
+        </section>
+    </div>
+</div>

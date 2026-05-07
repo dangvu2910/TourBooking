@@ -1,0 +1,142 @@
+﻿@model IEnumerable<Tour>
+
+@{
+    ViewData["Title"] = "Home - Voyager";
+    var featuredTours = Model?.Take(4).ToList() ?? new List<Tour>();
+}
+
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
+<div class="home-page">
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Adventure is <span class="highlight">calling.</span></h1>
+            <p>Curated journeys for the modern explorer. Discover hidden gems and world-class destinations.</p>
+
+            <div class="search-bar">
+                <input type="text" placeholder="Where are you going?" />
+                <input type="text" placeholder="Add dates" />
+                <button type="button">Search</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="featured-section">
+        <div class="home-container">
+        <div class="section-header">
+                <div>
+                    <p class="label">CURATED EXPERIENCES</p>
+                    <h2>Featured Tours</h2>
+                </div>
+                <a asp-controller="Tours" asp-action="Index" class="view-all-link">View all destinations →</a>
+            </div>
+
+            <div class="featured-grid">
+                @if (featuredTours.Any())
+                {
+                    @foreach (var tour in featuredTours)
+                    {
+                        <article class="tour-card">
+                            <div class="tour-card-image">
+                                @if (!string.IsNullOrWhiteSpace(tour.ImageUrl))
+                                {
+                                    <img src="@tour.ImageUrl" alt="@tour.Name" />
+                                }
+                                else
+                                {
+                                    <div class="placeholder-image"></div>
+                                }
+                                <span class="tour-card-badge">POPULAR</span>
+                            </div>
+                            <div class="tour-card-content">
+                                <h3>@tour.Name</h3>
+                                <p class="tour-location">📍 @tour.Location</p>
+                                <div class="tour-meta">
+                                    <p>From $@tour.Price</p>
+                                    <span>⭐ 4.8</span>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                }
+                else
+                {
+                    <article class="tour-card">
+                        <div class="tour-card-image">
+                            <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=700&q=80" alt="Uluwatu Sunset Tour" />
+                            <span class="tour-card-badge">TRENDING</span>
+                        </div>
+                        <div class="tour-card-content">
+                            <h3>Uluwatu Sunset Tour</h3>
+                            <p class="tour-location">📍 Bali, Indonesia</p>
+                            <div class="tour-meta"><p>From $499</p><span>⭐ 4.9</span></div>
+                        </div>
+                    </article>
+                    <article class="tour-card">
+                        <div class="tour-card-image">
+                            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=700&q=80" alt="Alpine Peak Discovery" />
+                            <span class="tour-card-badge">POPULAR</span>
+                        </div>
+                        <div class="tour-card-content">
+                            <h3>Alpine Peak Discovery</h3>
+                            <p class="tour-location">📍 Zermatt, Switzerland</p>
+                            <div class="tour-meta"><p>From $1,250</p><span>⭐ 5.0</span></div>
+                        </div>
+                    </article>
+                    <article class="tour-card">
+                        <div class="tour-card-image">
+                            <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=700&q=80" alt="Coastal Italian Gems" />
+                            <span class="tour-card-badge">POPULAR</span>
+                        </div>
+                        <div class="tour-card-content">
+                            <h3>Coastal Italian Gems</h3>
+                            <p class="tour-location">📍 Amalfi, Italy</p>
+                            <div class="tour-meta"><p>From $890</p><span>⭐ 4.8</span></div>
+                        </div>
+                    </article>
+                    <article class="tour-card">
+                        <div class="tour-card-image">
+                            <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=700&q=80" alt="Aegean Blue Escape" />
+                            <span class="tour-card-badge">TRENDING</span>
+                        </div>
+                        <div class="tour-card-content">
+                            <h3>Aegean Blue Escape</h3>
+                            <p class="tour-location">📍 Santorini, Greece</p>
+                            <div class="tour-meta"><p>From $620</p><span>⭐ 4.9</span></div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="travel-way-section">
+        <div class="home-container">
+            <h2 class="travel-way-title">Travel Your Way</h2>
+            <p class="travel-way-subtitle">We provide the flexibility and expertise you need to create the perfect journey.</p>
+
+            <div class="travel-way-grid">
+                <article class="travel-way-image">
+                    <img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=1200&q=80" alt="Group Expeditions" />
+                    <div class="travel-way-overlay">
+                        <h3>Group Expeditions</h3>
+                        <p>Connect with fellow travelers and explore the world's most breathtaking landscapes together.</p>
+                    </div>
+                </article>
+
+                <div class="travel-way-features">
+                    <article class="feature-card is-primary">
+                        <div class="feature-card-icon">🛡️</div>
+                        <h4>Safe & Trusted</h4>
+                        <p>Every tour is vetted for safety and quality by our local experts.</p>
+                    </div>
+                    <article class="feature-card">
+                        <div class="feature-card-icon">🎧</div>
+                        <h4>24/7 Concierge</h4>
+                        <p>Our travel specialists are always available to assist with your journey.</p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

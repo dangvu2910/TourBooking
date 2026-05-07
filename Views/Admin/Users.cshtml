@@ -1,0 +1,72 @@
+@model Tourbooking.ViewModels.AdminUsersViewModel
+
+@{
+    ViewData["Title"] = "Users";
+    Layout = "_AdminLayout";
+}
+
+<section class="dashboard-hero">
+    <div>
+        <p class="eyebrow">He thong quan tri</p>
+        <h1>Quan ly nguoi dung</h1>
+    </div>
+    <div class="hero-actions">
+        <button type="button" class="ghost-action">Xuat bao cao</button>
+        <button type="button" class="primary-action">Them nguoi dung moi</button>
+    </div>
+</section>
+
+<section class="panel-card">
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Nguoi dung</th>
+                    <th>Email</th>
+                    <th>Vai tro</th>
+                    <th>Ngay gia nhap</th>
+                    <th>Trang thai</th>
+                    <th>Thao tac</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar">@user.Initials</div>
+                                <div class="user-meta">
+                                    <strong>@user.Name</strong>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="table-muted">@user.Email</td>
+                        <td>
+                            <span class="role-pill @(user.Role == "Admin" ? "admin" : "user")">@user.Role</span>
+                        </td>
+                        <td>@user.JoinedDate</td>
+                        <td>
+                            <span class="status-text @(user.Status == "Active" ? "active" : "paused")">@user.Status</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <button type="button" class="icon-button">✎</button>
+                                <button type="button" class="icon-button">⋯</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <span>Hien thi 1-@Model.Users.Count cua @Model.TotalUsers nguoi dung</span>
+        <div class="pager">
+            <button type="button">1</button>
+            <button type="button" class="is-active">2</button>
+            <button type="button">3</button>
+        </div>
+    </div>
+</section>
