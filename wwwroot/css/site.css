@@ -21,6 +21,61 @@ body {
   margin-bottom: 60px;
 }
 
+.navbar-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.navbar-content .navbar-brand {
+  flex: 1 1 0;
+}
+
+.navbar-content .navbar-collapse {
+  flex: 1 1 auto;
+}
+
+.navbar-center {
+  justify-content: center;
+  gap: 16px;
+}
+
+.navbar-auth {
+  flex: 1 1 0;
+  justify-content: flex-end;
+}
+
+@media (min-width: 576px) {
+  .navbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-content {
+    align-items: stretch;
+  }
+
+  .navbar-content .navbar-collapse {
+    flex-basis: 100%;
+  }
+
+  .navbar-center {
+    justify-content: flex-start;
+    position: static;
+    transform: none;
+    padding-left: 0.5rem;
+  }
+
+  .navbar-auth {
+    justify-content: flex-start;
+    padding-left: 0.5rem;
+  }
+}
+
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;

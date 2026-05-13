@@ -72,50 +72,51 @@
                             ? staticImages[i]
                             : item.ImageUrl;
 
-                        <article class="tour-card">
-                            <div class="tour-image">
-                                @if (!string.IsNullOrWhiteSpace(displayImage))
-                                {
-                                    <img src="@displayImage" alt="@item.Name" />
-                                }
-                                else
-                                {
-                                    <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
-                                }
-                            </div>
-                            <div class="tour-info">
-                                <h3>@item.Name <span>★ 4.8</span></h3>
-                                <p>@item.Description</p>
-                                <div class="tour-price">
-                                    <small>STARTING AT</small>
-                                    <strong>$@item.Price</strong>
-                                    <a asp-action="Details" asp-route-id="@item.TourId">→</a>
+                        <a class="tour-card-link" asp-action="Details" asp-route-id="@item.TourId">
+                            <article class="tour-card">
+                                <div class="tour-image">
+                                    @if (!string.IsNullOrWhiteSpace(displayImage))
+                                    {
+                                        <img src="@displayImage" alt="@item.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
+                                    }
                                 </div>
-                            </div>
-                        </article>
+                                <div class="tour-info">
+                                    <h3>@item.Name <span>★ 4.8</span></h3>
+                                    <p>@item.Description</p>
+                                    <div class="tour-price">
+                                        <small>STARTING AT</small>
+                                        <strong>$@item.Price</strong>
+                                        <span class="tour-cta">→</span>
+                                    </div>
+                                </div>
+                            </article>
+                        </a>
                     }
                 }
                 else
                 {
                     @for (var i = 0; i < 6; i++)
                     {
-                        <article class="tour-card">
-                            <div class="tour-image">
-                                <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
-                            </div>
-                            <div class="tour-info">
-                                <h3>Tour title @(i + 1) <span>★ 0.0</span></h3>
-                                <p>Mô tả tour sẽ hiển thị tại đây.</p>
-                                <div class="tour-price">
-                                    <small>STARTING AT</small>
-                                    <strong>$0</strong>
-                                    @if (User.IsInRole("Admin"))
-                                    {
-                                        <a asp-action="Create">→</a>
-                                    }
+                        <a class="tour-card-link" asp-action="Details" asp-route-id="1">
+                            <article class="tour-card">
+                                <div class="tour-image">
+                                    <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
                                 </div>
-                            </div>
-                        </article>
+                                <div class="tour-info">
+                                    <h3>Tour title @(i + 1) <span>★ 0.0</span></h3>
+                                    <p>Mô tả tour sẽ hiển thị tại đây.</p>
+                                    <div class="tour-price">
+                                        <small>STARTING AT</small>
+                                        <strong>$0</strong>
+                                        <span class="tour-cta">→</span>
+                                    </div>
+                                </div>
+                            </article>
+                        </a>
                     }
                 }
             </div>

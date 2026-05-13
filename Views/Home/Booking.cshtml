@@ -1,0 +1,118 @@
+@{
+    ViewData["Title"] = "Booking - Voyager";
+}
+
+<link rel="stylesheet" href="~/css/booking.css" asp-append-version="true" />
+
+<div class="booking-page">
+    <section class="booking-hero">
+        <div class="booking-hero-label">THANH TOAN AN TOAN</div>
+        <h1>Hoan tat hanh trinh cua ban.</h1>
+        <p>Vui long dien thong tin ben duoi de xac nhan chuyen di cua ban.</p>
+        <p>Cuoc phieu luu bat dau chi voi mot lan nhan.</p>
+    </section>
+
+    <section class="booking-grid">
+        <div class="booking-left">
+            <div class="booking-card">
+                <div class="card-title">
+                    <span class="card-icon">◎</span>
+                    <div>
+                        <h2>Thong tin khach</h2>
+                        <p>Nhap thong tin lien he va ngay khoi hanh mong muon.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <label>
+                        <span>Ho va ten</span>
+                        <input type="text" placeholder="Nguyen Van A" />
+                    </label>
+                    <label>
+                        <span>Email</span>
+                        <input type="email" placeholder="ban@email.com" />
+                    </label>
+                    <label>
+                        <span>So dien thoai</span>
+                        <input type="tel" placeholder="+84 900 000 000" />
+                    </label>
+                    <label>
+                        <span>Ngay khoi hanh</span>
+                        <input type="date" />
+                    </label>
+                </div>
+
+                <div class="people-row">
+                    <p>So luong khach</p>
+                    <div class="people-chips">
+                        <button type="button" class="chip active">02</button>
+                        <button type="button" class="chip">03</button>
+                        <button type="button" class="chip">04</button>
+                        <button type="button" class="chip">05+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-card">
+                <h3>Phuong thuc thanh toan</h3>
+                <div class="payment-options">
+                    <button type="button" class="payment-option active">
+                        <span class="payment-icon">▭</span>
+                        The tin dung
+                    </button>
+                    <button type="button" class="payment-option">
+                        <span class="payment-icon">$$</span>
+                        PayPal
+                    </button>
+                    <button type="button" class="payment-option">
+                        <span class="payment-icon">🏦</span>
+                        Chuyen khoan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <aside class="booking-right">
+            <div class="summary-card">
+                <div class="summary-image">
+                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80" alt="Canh nui va ho xanh" />
+                </div>
+                <div class="summary-body">
+                    <div class="summary-title">
+                        <div>
+                            <h3>Hanh trinh Alpine Whisper</h3>
+                            <p>📍 Alps, Thuy Si</p>
+                        </div>
+                        <span class="summary-rating">★ 4.9</span>
+                    </div>
+
+                    <div class="summary-line">
+                        <span>Gia co ban (2 nguoi)</span>
+                        <strong>$1,450.00</strong>
+                    </div>
+                    <div class="summary-line">
+                        <span>Phi dich vu</span>
+                        <strong>$45.00</strong>
+                    </div>
+                    <div class="summary-line">
+                        <span>Thue dia phuong</span>
+                        <strong>$120.00</strong>
+                    </div>
+
+                    <div class="summary-total">
+                        <span>Tong thanh toan</span>
+                        <strong>$1,615.00</strong>
+                    </div>
+
+                    <button class="confirm-button" type="button">Xac nhan dat chuyen</button>
+                    <p class="summary-note">Giao dich duoc bao mat boi Stripe</p>
+                </div>
+            </div>
+
+            <div class="trust-row">
+                <div class="trust-item">🔒 100% thanh toan an toan</div>
+                <div class="trust-item">🎧 Ho tro chuyen gia 24/7</div>
+            </div>
+        </aside>
+    </section>
+</div>

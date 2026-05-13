@@ -14,25 +14,25 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
 }
 
 .login-container {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 24px 16px;
 }
 
 .login-content {
     display: flex;
-    width: 100%;
+    width: min(980px, 100%);
     max-width: 100%;
-    height: 100vh;
+    height: auto;
     background: white;
-    border-radius: 0;
-    box-shadow: none;
+    border-radius: 16px;
+    box-shadow: 0 24px 40px rgba(15, 23, 42, 0.12);
     overflow: hidden;
 }
 
@@ -107,13 +107,13 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 60px 50px;
-    background: #f9f9f9;
+    padding: 36px 32px;
+    background: #ffffff;
 }
 
 .login-form-wrapper {
     width: 100%;
-    max-width: 400px;
+    max-width: 100%;
     margin: 0 auto;
 }
 
@@ -287,7 +287,7 @@ body {
 }
 
 .login-footer {
-    margin-top: 40px;
+    margin-top: 30px;
     padding-top: 20px;
     border-top: 1px solid #ddd;
     text-align: center;
@@ -332,12 +332,12 @@ body {
     }
 
     .login-left {
-        min-height: 300px;
-        padding: 40px 30px;
+        min-height: 260px;
+        padding: 32px 24px;
     }
 
     .login-right {
-        padding: 40px 30px;
+        padding: 30px 24px;
     }
 
     .login-left h1 {
