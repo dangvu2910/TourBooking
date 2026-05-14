@@ -22,14 +22,36 @@ namespace Tourbooking.Controllers
         }
 
         // GET: Tours
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
             if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
             {
                 return RedirectToAction("Tours", "Admin");
             }
 
-            return View(await _context.Tours.ToListAsync());
+            const int pageSize = 6;
+            var totalTours = await _context.Tours.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalTours / (double)pageSize);
+
+            if (page < 1)
+            {
+                page = 1;
+            }
+            if (totalPages > 0 && page > totalPages)
+            {
+                page = totalPages;
+            }
+
+            var tours = await _context.Tours
+                .OrderBy(t => t.TourId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewData["CurrentPage"] = page;
+            ViewData["TotalPages"] = totalPages;
+
+            return View(tours);
         }
 
         // GET: Tours/Details/5

@@ -2,7 +2,9 @@
 
 @{
     ViewData["Title"] = "Tours - Voyager";
-    var tours = Model?.Take(6).ToList() ?? new List<Tour>();
+    var tours = Model?.ToList() ?? new List<Tour>();
+    var currentPage = ViewData["CurrentPage"] as int? ?? 1;
+    var totalPages = ViewData["TotalPages"] as int? ?? 1;
 
     // GÁN ẢNH TĨNH TẠI ĐÂY (nếu bạn muốn):
     // Ví dụ: staticTourImage1 = "/images/tours/tour-1.jpg";
@@ -54,7 +56,7 @@
             <div class="tours-head">
                 <div>
                     <h1>Curated Journeys</h1>
-                    <p>Discover @Model.Count() exclusive experiences tailored for you.</p>
+                    <p>Discover @tours.Count exclusive experiences tailored for you.</p>
                 </div>
                 <div class="sort-box">
                     <span>Sort by:</span>
@@ -122,11 +124,12 @@
             </div>
 
             <div class="pagination-ui">
-                <button type="button">‹</button>
-                <button type="button" class="active">1</button>
-                <button type="button">2</button>
-                <button type="button">3</button>
-                <button type="button">›</button>
+                <a class="page-btn" asp-action="Index" asp-route-page="@(currentPage - 1)">‹</a>
+                @for (var i = 1; i <= totalPages; i++)
+                {
+                    <a class="page-btn @(i == currentPage ? "active" : "")" asp-action="Index" asp-route-page="@i">@i</a>
+                }
+                <a class="page-btn" asp-action="Index" asp-route-page="@(currentPage + 1)">›</a>
             </div>
         </section>
     </div>

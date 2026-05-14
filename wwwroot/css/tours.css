@@ -247,16 +247,22 @@
     margin-top: 26px;
 }
 
-.pagination-ui button {
+.pagination-ui button,
+.pagination-ui .page-btn {
     width: 34px;
     height: 34px;
     border-radius: 50%;
     border: 1px solid #d4d9e2;
     background: #fff;
     color: #334155;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
 }
 
-.pagination-ui button.active {
+.pagination-ui button.active,
+.pagination-ui .page-btn.active {
     background: var(--tour-primary);
     border-color: var(--tour-primary);
     color: #fff;
