@@ -47,11 +47,26 @@
                         <div class="d-flex gap-2 align-items-center navbar-auth">
                         @if (User?.Identity?.IsAuthenticated == true)
                         {
-                            <span class="small text-muted">@User.Identity.Name</span>
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-outline-primary btn-sm">Sign Out</button>
-                            </form>
+                                var displayName = User.Identity?.Name ?? "User";
+                                var initial = !string.IsNullOrWhiteSpace(displayName) ? displayName.Substring(0, 1).ToUpperInvariant() : "U";
+                                <div class="dropdown user-menu">
+                                    <button class="btn user-avatar dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        @initial
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li class="px-3 py-2 small text-muted">@displayName</li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Profile</a>
+                                        </li>
+                                        <li>
+                                            <form asp-controller="Account" asp-action="Logout" method="post" class="px-3 py-2">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-primary btn-sm w-100">Sign Out</button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                         }
                         else
                         {
