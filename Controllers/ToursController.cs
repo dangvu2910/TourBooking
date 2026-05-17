@@ -22,7 +22,7 @@ namespace Tourbooking.Controllers
         }
 
         // GET: Tours
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(string? query, decimal? minPrice, decimal? maxPrice, int page = 1)
         {
             if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
             {
@@ -30,7 +30,25 @@ namespace Tourbooking.Controllers
             }
 
             const int pageSize = 6;
-            var totalTours = await _context.Tours.CountAsync();
+
+            var toursQuery = _context.Tours.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                toursQuery = toursQuery.Where(t => t.Name.Contains(query) || t.Location.Contains(query));
+            }
+
+            if (minPrice.HasValue)
+            {
+                toursQuery = toursQuery.Where(t => t.Price >= minPrice.Value);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                toursQuery = toursQuery.Where(t => t.Price <= maxPrice.Value);
+            }
+
+            var totalTours = await toursQuery.CountAsync();
             var totalPages = (int)Math.Ceiling(totalTours / (double)pageSize);
 
             if (page < 1)
@@ -42,7 +60,7 @@ namespace Tourbooking.Controllers
                 page = totalPages;
             }
 
-            var tours = await _context.Tours
+            var tours = await toursQuery
                 .OrderBy(t => t.TourId)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -50,6 +68,10 @@ namespace Tourbooking.Controllers
 
             ViewData["CurrentPage"] = page;
             ViewData["TotalPages"] = totalPages;
+            ViewData["TotalTours"] = totalTours;
+            ViewData["Query"] = query;
+            ViewData["MinPrice"] = minPrice;
+            ViewData["MaxPrice"] = maxPrice;
 
             return View(tours);
         }

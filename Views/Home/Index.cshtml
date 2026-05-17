@@ -13,11 +13,11 @@
             <h1>Adventure is <span class="highlight">calling.</span></h1>
             <p>Curated journeys for the modern explorer. Discover hidden gems and world-class destinations.</p>
 
-            <div class="search-bar">
-                <input type="text" placeholder="Where are you going?" />
-                <input type="text" placeholder="Add dates" />
-                <button type="button">Search</button>
-            </div>
+            <form class="search-bar" asp-controller="Tours" asp-action="Index" method="get">
+                <input type="text" name="query" placeholder="Ten tour hoac dia diem" />
+                <input type="number" name="maxPrice" placeholder="Gia toi da" min="0" step="100" />
+                <button type="submit">Tim kiem</button>
+            </form>
         </div>
     </section>
 
