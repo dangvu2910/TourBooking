@@ -1,18 +1,18 @@
 @model Tourbooking.ViewModels.AdminUsersViewModel
 
 @{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = "Người dùng";
     Layout = "_AdminLayout";
 }
 
 <section class="dashboard-hero">
     <div>
-        <p class="eyebrow">He thong quan tri</p>
-        <h1>Quan ly nguoi dung</h1>
+        <p class="eyebrow">Hệ thống quản trị</p>
+        <h1>Quản lý người dùng</h1>
     </div>
     <div class="hero-actions">
-        <button type="button" class="ghost-action">Xuat bao cao</button>
-        <button type="button" class="primary-action">Them nguoi dung moi</button>
+        <button type="button" class="ghost-action">Xuất báo cáo</button>
+        <button type="button" class="primary-action">Thêm người dùng mới</button>
     </div>
 </section>
 
@@ -21,12 +21,12 @@
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Nguoi dung</th>
+                    <th>Người dùng</th>
                     <th>Email</th>
-                    <th>Vai tro</th>
-                    <th>Ngay gia nhap</th>
-                    <th>Trang thai</th>
-                    <th>Thao tac</th>
+                    <th>Vai trò</th>
+                    <th>Ngày gia nhập</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,7 +62,7 @@
     </div>
 
     <div class="table-footer">
-        <span>Hien thi 1-@Model.Users.Count cua @Model.TotalUsers nguoi dung</span>
+        <span>Hiển thị 1-@Model.Users.Count của @Model.TotalUsers người dùng</span>
         <div class="pager">
             <button type="button">1</button>
             <button type="button" class="is-active">2</button>

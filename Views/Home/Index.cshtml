@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Tour>
 
 @{
-    ViewData["Title"] = "Home - Voyager";
+    ViewData["Title"] = "Trang chủ - Voyager";
     var featuredTours = Model?.Take(4).ToList() ?? new List<Tour>();
 }
 
@@ -10,25 +10,25 @@
 <div class="home-page">
     <section class="hero-section">
         <div class="hero-content">
-            <h1>Adventure is <span class="highlight">calling.</span></h1>
-            <p>Curated journeys for the modern explorer. Discover hidden gems and world-class destinations.</p>
+            <h1>Hành trình đang <span class="highlight">gọi bạn.</span></h1>
+            <p>Những chuyến đi được chọn lọc cho người khám phá hiện đại. Khám phá điểm đến tuyệt đẹp trên toàn thế giới.</p>
 
             <form class="search-bar" asp-controller="Tours" asp-action="Index" method="get">
-                <input type="text" name="query" placeholder="Ten tour hoac dia diem" />
-                <input type="number" name="maxPrice" placeholder="Gia toi da" min="0" step="100" />
-                <button type="submit">Tim kiem</button>
+                <input type="text" name="query" placeholder="Tên tour hoặc địa điểm" />
+                <input type="number" name="maxPrice" placeholder="Giá tối đa" min="0" step="100" />
+                <button type="submit">Tìm kiếm</button>
             </form>
         </div>
     </section>
 
     <section class="featured-section">
         <div class="home-container">
-        <div class="section-header">
+            <div class="section-header">
                 <div>
-                    <p class="label">CURATED EXPERIENCES</p>
-                    <h2>Featured Tours</h2>
+                    <p class="label">HÀNH TRÌNH NỔI BẬT</p>
+                    <h2>Tour tiêu biểu</h2>
                 </div>
-                <a asp-controller="Tours" asp-action="Index" class="view-all-link">View all destinations →</a>
+                <a asp-controller="Tours" asp-action="Index" class="view-all-link">Xem tất cả điểm đến →</a>
             </div>
 
             <div class="featured-grid">
@@ -46,13 +46,13 @@
                                 {
                                     <div class="placeholder-image"></div>
                                 }
-                                <span class="tour-card-badge">POPULAR</span>
+                                <span class="tour-card-badge">NỔI BẬT</span>
                             </div>
                             <div class="tour-card-content">
                                 <h3>@tour.Name</h3>
                                 <p class="tour-location">📍 @tour.Location</p>
                                 <div class="tour-meta">
-                                    <p>From $@tour.Price</p>
+                                    <p>Từ $@tour.Price</p>
                                     <span>⭐ 4.8</span>
                                 </div>
                             </div>
@@ -63,46 +63,46 @@
                 {
                     <article class="tour-card">
                         <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=700&q=80" alt="Uluwatu Sunset Tour" />
-                            <span class="tour-card-badge">TRENDING</span>
+                            <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=700&q=80" alt="Tour hoàng hôn Uluwatu" />
+                            <span class="tour-card-badge">XU HƯỚNG</span>
                         </div>
                         <div class="tour-card-content">
-                            <h3>Uluwatu Sunset Tour</h3>
+                            <h3>Tour hoàng hôn Uluwatu</h3>
                             <p class="tour-location">📍 Bali, Indonesia</p>
-                            <div class="tour-meta"><p>From $499</p><span>⭐ 4.9</span></div>
+                            <div class="tour-meta"><p>Từ $499</p><span>⭐ 4.9</span></div>
                         </div>
                     </article>
                     <article class="tour-card">
                         <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=700&q=80" alt="Alpine Peak Discovery" />
-                            <span class="tour-card-badge">POPULAR</span>
+                            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=700&q=80" alt="Khám phá đỉnh núi Alps" />
+                            <span class="tour-card-badge">NỔI BẬT</span>
                         </div>
                         <div class="tour-card-content">
-                            <h3>Alpine Peak Discovery</h3>
-                            <p class="tour-location">📍 Zermatt, Switzerland</p>
-                            <div class="tour-meta"><p>From $1,250</p><span>⭐ 5.0</span></div>
+                            <h3>Khám phá đỉnh núi Alps</h3>
+                            <p class="tour-location">📍 Zermatt, Thụy Sĩ</p>
+                            <div class="tour-meta"><p>Từ $1,250</p><span>⭐ 5.0</span></div>
                         </div>
                     </article>
                     <article class="tour-card">
                         <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=700&q=80" alt="Coastal Italian Gems" />
-                            <span class="tour-card-badge">POPULAR</span>
+                            <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=700&q=80" alt="Ngọc biển nước Ý" />
+                            <span class="tour-card-badge">NỔI BẬT</span>
                         </div>
                         <div class="tour-card-content">
-                            <h3>Coastal Italian Gems</h3>
-                            <p class="tour-location">📍 Amalfi, Italy</p>
-                            <div class="tour-meta"><p>From $890</p><span>⭐ 4.8</span></div>
+                            <h3>Ngọc biển nước Ý</h3>
+                            <p class="tour-location">📍 Amalfi, Ý</p>
+                            <div class="tour-meta"><p>Từ $890</p><span>⭐ 4.8</span></div>
                         </div>
                     </article>
                     <article class="tour-card">
                         <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=700&q=80" alt="Aegean Blue Escape" />
-                            <span class="tour-card-badge">TRENDING</span>
+                            <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=700&q=80" alt="Biển xanh Aegean" />
+                            <span class="tour-card-badge">XU HƯỚNG</span>
                         </div>
                         <div class="tour-card-content">
-                            <h3>Aegean Blue Escape</h3>
-                            <p class="tour-location">📍 Santorini, Greece</p>
-                            <div class="tour-meta"><p>From $620</p><span>⭐ 4.9</span></div>
+                            <h3>Biển xanh Aegean</h3>
+                            <p class="tour-location">📍 Santorini, Hy Lạp</p>
+                            <div class="tour-meta"><p>Từ $620</p><span>⭐ 4.9</span></div>
                         </div>
                     </article>
                 }
@@ -112,28 +112,28 @@
 
     <section class="travel-way-section">
         <div class="home-container">
-            <h2 class="travel-way-title">Travel Your Way</h2>
-            <p class="travel-way-subtitle">We provide the flexibility and expertise you need to create the perfect journey.</p>
+            <h2 class="travel-way-title">Du lịch theo cách của bạn</h2>
+            <p class="travel-way-subtitle">Chúng tôi mang đến sự linh hoạt và chuyên môn để tạo hành trình hoàn hảo.</p>
 
             <div class="travel-way-grid">
                 <article class="travel-way-image">
-                    <img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=1200&q=80" alt="Group Expeditions" />
+                    <img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=1200&q=80" alt="Hành trình theo nhóm" />
                     <div class="travel-way-overlay">
-                        <h3>Group Expeditions</h3>
-                        <p>Connect with fellow travelers and explore the world's most breathtaking landscapes together.</p>
+                        <h3>Hành trình theo nhóm</h3>
+                        <p>Kết nối với bạn đồng hành và khám phá những cảnh đẹp ấn tượng.</p>
                     </div>
                 </article>
 
                 <div class="travel-way-features">
                     <article class="feature-card is-primary">
                         <div class="feature-card-icon">🛡️</div>
-                        <h4>Safe & Trusted</h4>
-                        <p>Every tour is vetted for safety and quality by our local experts.</p>
-                    </div>
+                        <h4>An toàn & tin cậy</h4>
+                        <p>Mỗi tour được thẩm định bởi chuyên gia địa phương.</p>
+                    </article>
                     <article class="feature-card">
                         <div class="feature-card-icon">🎧</div>
-                        <h4>24/7 Concierge</h4>
-                        <p>Our travel specialists are always available to assist with your journey.</p>
+                        <h4>Hỗ trợ 24/7</h4>
+                        <p>Chuyên gia du lịch luôn sẵn sàng hỗ trợ hành trình.</p>
                     </article>
                 </div>
             </div>

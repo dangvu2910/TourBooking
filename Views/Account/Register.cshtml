@@ -1,7 +1,7 @@
 @model Tourbooking.ViewModels.RegisterViewModel
 
 @{
-    ViewData["Title"] = "Register - Tourbooking";
+    ViewData["Title"] = "Đăng ký - Tourbooking";
     Layout = "_LayoutLogin";
 }
 
@@ -12,40 +12,40 @@
         <div class="login-side login-left">
             <div class="login-overlay">
                 <h1>Voyager</h1>
-                <p>Create your account to start booking tours.</p>
+                <p>Tạo tài khoản để bắt đầu đặt tour.</p>
             </div>
         </div>
 
         <div class="login-side login-right">
             <div class="login-form-wrapper">
-                <h2>Create account</h2>
-                <p class="subtitle">Enter your details to get started.</p>
+                <h2>Tạo tài khoản</h2>
+                <p class="subtitle">Nhập thông tin để bắt đầu.</p>
 
                 <form asp-action="Register" asp-controller="Account" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <div class="form-group">
                         <label asp-for="Email"></label>
-                        <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                        <input asp-for="Email" class="form-control" placeholder="ban@example.com" />
                         <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <div class="form-group">
                         <label asp-for="Password"></label>
-                        <input asp-for="Password" class="form-control" placeholder="Create a password" />
+                        <input asp-for="Password" class="form-control" placeholder="Tạo mật khẩu" />
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
                     <div class="form-group">
                         <label asp-for="ConfirmPassword"></label>
-                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm your password" />
+                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Xác nhận mật khẩu" />
                         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                     </div>
 
-                    <button type="submit" class="btn-signin">Create account</button>
+                    <button type="submit" class="btn-signin">Tạo tài khoản</button>
 
                     <p class="signup-link">
-                        Already have an account? <a asp-action="Login" asp-controller="Account">Sign In</a>
+                        Đã có tài khoản? <a asp-action="Login" asp-controller="Account">Đăng nhập</a>
                     </p>
                 </form>
             </div>

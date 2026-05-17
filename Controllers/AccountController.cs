@@ -73,7 +73,7 @@ namespace Tourbooking.Controllers
                 return RedirectToAction("Index", "Tours");
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid email or password.");
+            ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không đúng.");
             return View(model);
         }
 

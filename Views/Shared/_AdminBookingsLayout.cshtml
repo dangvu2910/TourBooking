@@ -1,15 +1,15 @@
 @{
-    var pageTitle = ViewData["Title"] as string ?? "Admin";
+    var pageTitle = ViewData["Title"] as string ?? "Quản trị";
     var currentController = (ViewContext.RouteData.Values["controller"] as string) ?? string.Empty;
     var currentAction = (ViewContext.RouteData.Values["action"] as string) ?? string.Empty;
 }
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@pageTitle - Voyager Admin</title>
+    <title>@pageTitle - Quản trị Voyager</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&display=swap" />
     <link rel="stylesheet" href="~/css/admin-bookings.css" asp-append-version="true" />
 </head>
@@ -17,37 +17,37 @@
     <div class="admin-shell">
         <aside class="admin-sidebar">
             <div class="brand-block">
-                <span class="brand-title">Voyager Admin</span>
-                <span class="brand-subtitle">The Digital Curator</span>
+                <span class="brand-title">Quản trị Voyager</span>
+                <span class="brand-subtitle">Trung tâm điều phối</span>
             </div>
 
             <nav class="admin-nav">
-                <a class="nav-link @(currentController == "Admin" && currentAction == "Dashboard" ? "is-active" : "")" href="/Admin/Dashboard">Dashboard</a>
-                <a class="nav-link @(currentController == "Admin" && currentAction == "Tours" ? "is-active" : "")" href="/Admin/Tours">Tours</a>
-                <a class="nav-link @(currentController == "Admin" && currentAction == "Bookings" ? "is-active" : "")" href="/Admin/Bookings">Bookings</a>
-                <a class="nav-link @(currentController == "Admin" && currentAction == "Users" ? "is-active" : "")" href="/Admin/Users">Users</a>
+                <a class="nav-link @(currentController == "Admin" && currentAction == "Dashboard" ? "is-active" : "")" href="/Admin/Dashboard">Bảng điều khiển</a>
+                <a class="nav-link @(currentController == "Admin" && currentAction == "Tours" ? "is-active" : "")" href="/Admin/Tours">Tour</a>
+                <a class="nav-link @(currentController == "Admin" && currentAction == "Bookings" ? "is-active" : "")" href="/Admin/Bookings">Đặt chỗ</a>
+                <a class="nav-link @(currentController == "Admin" && currentAction == "Users" ? "is-active" : "")" href="/Admin/Users">Người dùng</a>
             </nav>
 
-            <button type="button" class="cta-button">New Listing</button>
+            <button type="button" class="cta-button">Thêm tour mới</button>
 
             <div class="admin-footer-links">
-                <a href="#">Settings</a>
-                <a href="#">Support</a>
+                <a href="#">Cài đặt</a>
+                <a href="#">Hỗ trợ</a>
             </div>
         </aside>
 
         <div class="admin-main">
             <header class="admin-header">
                 <div class="search-wrap">
-                    <input type="text" placeholder="Search bookings, users, or destinations..." />
+                    <input type="text" placeholder="Tìm kiếm đặt chỗ, người dùng, điểm đến..." />
                 </div>
                 <div class="admin-actions">
-                    <span class="pill">Global View</span>
-                    <span class="pill">Analytics</span>
-                    <span class="pill is-active">Reports</span>
+                    <span class="pill">Toàn cục</span>
+                    <span class="pill">Phân tích</span>
+                    <span class="pill is-active">Báo cáo</span>
                     <form asp-controller="Account" asp-action="Logout" method="post" class="admin-logout">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="ghost-action">Dang xuat</button>
+                        <button type="submit" class="ghost-action">Đăng xuất</button>
                     </form>
                     <div class="admin-avatar">AR</div>
                 </div>

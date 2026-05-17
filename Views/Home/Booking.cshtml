@@ -1,15 +1,15 @@
 @{
-    ViewData["Title"] = "Booking - Voyager";
+    ViewData["Title"] = "Đặt chỗ - Voyager";
 }
 
 <link rel="stylesheet" href="~/css/booking.css" asp-append-version="true" />
 
 <div class="booking-page">
     <section class="booking-hero">
-        <div class="booking-hero-label">THANH TOAN AN TOAN</div>
-        <h1>Hoan tat hanh trinh cua ban.</h1>
-        <p>Vui long dien thong tin ben duoi de xac nhan chuyen di cua ban.</p>
-        <p>Cuoc phieu luu bat dau chi voi mot lan nhan.</p>
+        <div class="booking-hero-label">THANH TOÁN AN TOÀN</div>
+        <h1>Hoàn tất hành trình của bạn.</h1>
+        <p>Vui lòng điền thông tin bên dưới để xác nhận chuyến đi của bạn.</p>
+        <p>Cuộc phiêu lưu bắt đầu chỉ với một lần nhấn.</p>
     </section>
 
     <section class="booking-grid">
@@ -18,32 +18,32 @@
                 <div class="card-title">
                     <span class="card-icon">◎</span>
                     <div>
-                        <h2>Thong tin khach</h2>
-                        <p>Nhap thong tin lien he va ngay khoi hanh mong muon.</p>
+                        <h2>Thông tin khách</h2>
+                        <p>Nhập thông tin liên hệ và ngày khởi hành mong muốn.</p>
                     </div>
                 </div>
 
                 <div class="form-grid">
                     <label>
-                        <span>Ho va ten</span>
-                        <input type="text" placeholder="Nguyen Van A" />
+                        <span>Họ và tên</span>
+                        <input type="text" placeholder="Nguyễn Văn A" />
                     </label>
                     <label>
                         <span>Email</span>
                         <input type="email" placeholder="ban@email.com" />
                     </label>
                     <label>
-                        <span>So dien thoai</span>
+                        <span>Số điện thoại</span>
                         <input type="tel" placeholder="+84 900 000 000" />
                     </label>
                     <label>
-                        <span>Ngay khoi hanh</span>
+                        <span>Ngày khởi hành</span>
                         <input type="date" />
                     </label>
                 </div>
 
                 <div class="people-row">
-                    <p>So luong khach</p>
+                    <p>Số lượng khách</p>
                     <div class="people-chips">
                         <button type="button" class="chip active">02</button>
                         <button type="button" class="chip">03</button>
@@ -54,11 +54,11 @@
             </div>
 
             <div class="payment-card">
-                <h3>Phuong thuc thanh toan</h3>
+                <h3>Phương thức thanh toán</h3>
                 <div class="payment-options">
                     <button type="button" class="payment-option active">
                         <span class="payment-icon">▭</span>
-                        The tin dung
+                        Thẻ tín dụng
                     </button>
                     <button type="button" class="payment-option">
                         <span class="payment-icon">$$</span>
@@ -66,7 +66,7 @@
                     </button>
                     <button type="button" class="payment-option">
                         <span class="payment-icon">🏦</span>
-                        Chuyen khoan
+                        Chuyển khoản
                     </button>
                 </div>
             </div>
@@ -75,43 +75,43 @@
         <aside class="booking-right">
             <div class="summary-card">
                 <div class="summary-image">
-                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80" alt="Canh nui va ho xanh" />
+                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80" alt="Cảnh núi và hồ xanh" />
                 </div>
                 <div class="summary-body">
                     <div class="summary-title">
                         <div>
-                            <h3>Hanh trinh Alpine Whisper</h3>
-                            <p>📍 Alps, Thuy Si</p>
+                            <h3>Hành trình Alpine Whisper</h3>
+                            <p>📍 Alps, Thụy Sĩ</p>
                         </div>
                         <span class="summary-rating">★ 4.9</span>
                     </div>
 
                     <div class="summary-line">
-                        <span>Gia co ban (2 nguoi)</span>
+                        <span>Giá cơ bản (2 người)</span>
                         <strong>$1,450.00</strong>
                     </div>
                     <div class="summary-line">
-                        <span>Phi dich vu</span>
+                        <span>Phí dịch vụ</span>
                         <strong>$45.00</strong>
                     </div>
                     <div class="summary-line">
-                        <span>Thue dia phuong</span>
+                        <span>Thuế địa phương</span>
                         <strong>$120.00</strong>
                     </div>
 
                     <div class="summary-total">
-                        <span>Tong thanh toan</span>
+                        <span>Tổng thanh toán</span>
                         <strong>$1,615.00</strong>
                     </div>
 
-                    <button class="confirm-button" type="button">Xac nhan dat chuyen</button>
-                    <p class="summary-note">Giao dich duoc bao mat boi Stripe</p>
+                    <button class="confirm-button" type="button">Xác nhận đặt chuyến</button>
+                    <p class="summary-note">Giao dịch được bảo mật bởi Stripe</p>
                 </div>
             </div>
 
             <div class="trust-row">
-                <div class="trust-item">🔒 100% thanh toan an toan</div>
-                <div class="trust-item">🎧 Ho tro chuyen gia 24/7</div>
+                <div class="trust-item">🔒 100% thanh toán an toàn</div>
+                <div class="trust-item">🎧 Hỗ trợ chuyên gia 24/7</div>
             </div>
         </aside>
     </section>

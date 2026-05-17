@@ -1,12 +1,12 @@
 ﻿@model Tour
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Tạo tour";
 }
 
-<h1>Create</h1>
+<h1>Tạo tour</h1>
 
-<h4>Tour</h4>
+<h4>Thông tin tour</h4>
 <hr />
 <div class="row">
     <div class="col-md-6">
@@ -35,12 +35,12 @@
             <div class="form-group">
                 <label class="control-label">Chọn hình ảnh</label>
                 <input type="file" id="imageFile" name="imageFile" class="form-control" accept="image/*" />
-                <small class="form-text text-muted">Chọn file hình ảnh (JPG, PNG, GIF, etc.)</small>
+                <small class="form-text text-muted">Chọn file hình ảnh (JPG, PNG, GIF...)</small>
             </div>
             <div class="form-group">
-                <label class="control-label">Preview hình ảnh</label>
+                <label class="control-label">Xem trước hình ảnh</label>
                 <div id="imagePreview" style="margin-top: 10px;">
-                    <img id="previewImage" src="" alt="Preview" style="max-width: 300px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+                    <img id="previewImage" src="" alt="Xem trước" style="max-width: 300px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
                 </div>
             </div>
             <input type="hidden" asp-for="ImageUrl" id="imageUrlInput" />
@@ -50,14 +50,14 @@
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <input type="submit" value="Tạo tour" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Quay lại danh sách</a>
 </div>
 
 @section Scripts {

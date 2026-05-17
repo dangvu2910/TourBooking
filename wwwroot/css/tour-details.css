@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600&display=swap");
 
 :root {
   --details-bg: #f7f3ef;
@@ -14,7 +14,7 @@
   background: var(--details-bg);
   padding-bottom: 64px;
   color: var(--details-ink);
-  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-family: "Be Vietnam Pro", "Manrope", "Segoe UI", sans-serif;
 }
 
 .tour-hero {

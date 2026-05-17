@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Thong tin ca nhan";
+    ViewData["Title"] = "Thông tin cá nhân";
 }
 
 <link rel="stylesheet" href="~/css/profile.css" asp-append-version="true" />
@@ -7,19 +7,19 @@
 <div class="profile-page">
     <div class="profile-shell">
         <aside class="profile-sidebar">
-            <h2>Cai dat</h2>
-            <p class="profile-subtitle">Quan ly trai nghiem du lich cua ban</p>
+            <h2>Cài đặt</h2>
+            <p class="profile-subtitle">Quản lý trải nghiệm du lịch của bạn</p>
 
             <nav class="profile-nav">
-                <button class="profile-link active" type="button">Thong tin ca nhan</button>
-                <button class="profile-link" type="button">Doi mat khau</button>
-                <button class="profile-link" type="button">Thong bao</button>
-                <button class="profile-link" type="button">Thanh toan</button>
+                <button class="profile-link active" type="button">Thông tin cá nhân</button>
+                <button class="profile-link" type="button">Đổi mật khẩu</button>
+                <button class="profile-link" type="button">Thông báo</button>
+                <button class="profile-link" type="button">Thanh toán</button>
             </nav>
 
             <form asp-controller="Account" asp-action="Logout" method="post" class="profile-logout">
                 @Html.AntiForgeryToken()
-                <button type="submit">Dang xuat</button>
+                <button type="submit">Đăng xuất</button>
             </form>
         </aside>
 
@@ -27,47 +27,47 @@
             <div class="profile-card">
                 <div class="profile-header">
                     <div class="profile-avatar">
-                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80" alt="Anh dai dien" />
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80" alt="Ảnh đại diện" />
                     </div>
                     <div>
-                        <h3>Thong tin ca nhan</h3>
-                        <p>Cap nhat thong tin de Voyager phuc vu ban tot hon.</p>
+                        <h3>Thông tin cá nhân</h3>
+                        <p>Cập nhật thông tin để Voyager phục vụ bạn tốt hơn.</p>
                     </div>
                     <div class="profile-actions">
-                        <button class="btn-outline" type="button">Huy</button>
-                        <button class="btn-primary" type="button">Luu thay doi</button>
+                        <button class="btn-outline" type="button">Hủy</button>
+                        <button class="btn-primary" type="button">Lưu thay đổi</button>
                     </div>
                 </div>
 
                 <div class="profile-form">
                     <label>
-                        <span>Ho va ten</span>
-                        <input type="text" value="Nguyen Van A" />
+                        <span>Họ và tên</span>
+                        <input type="text" value="Nguyễn Văn A" />
                     </label>
                     <label>
-                        <span>Email lien he</span>
+                        <span>Email liên hệ</span>
                         <input type="email" value="nguyen.vana@voyager.vn" />
                     </label>
                     <label>
-                        <span>So dien thoai</span>
+                        <span>Số điện thoại</span>
                         <input type="text" value="+84 901 234 567" />
                     </label>
                     <label>
-                        <span>Dia chi</span>
-                        <input type="text" value="Thao Dien, Quan 2, TP. Ho Chi Minh" />
+                        <span>Địa chỉ</span>
+                        <input type="text" value="Thảo Điền, Quận 2, TP. Hồ Chí Minh" />
                     </label>
                 </div>
 
                 <div class="profile-preferences">
                     <div>
-                        <h4>Uu tien trai nghiem</h4>
-                        <p>Chon cac loai hinh du lich yeu thich de ca nhan hoa hanh trinh.</p>
+                        <h4>Ưu tiên trải nghiệm</h4>
+                        <p>Chọn các loại hình du lịch yêu thích để cá nhân hóa hành trình.</p>
                     </div>
                     <div class="profile-tags">
-                        <button type="button" class="tag active">Nghi duong</button>
-                        <button type="button" class="tag">Kham pha</button>
-                        <button type="button" class="tag active">Am thuc</button>
-                        <button type="button" class="tag">Van hoa</button>
+                        <button type="button" class="tag active">Nghỉ dưỡng</button>
+                        <button type="button" class="tag">Khám phá</button>
+                        <button type="button" class="tag active">Ẩm thực</button>
+                        <button type="button" class="tag">Văn hóa</button>
                     </div>
                 </div>
             </div>
@@ -75,10 +75,10 @@
             <div class="profile-card profile-alert">
                 <div class="alert-icon">🔒</div>
                 <div>
-                    <h4>Xac thuc hai yeu to (2FA)</h4>
-                    <p>Tang cuong bao mat cho tai khoan Voyager cua ban.</p>
+                    <h4>Xác thực hai yếu tố (2FA)</h4>
+                    <p>Tăng cường bảo mật cho tài khoản Voyager của bạn.</p>
                 </div>
-                <button class="btn-link" type="button">Thiet lap ngay</button>
+                <button class="btn-link" type="button">Thiết lập ngay</button>
             </div>
         </section>
     </div>

@@ -1,23 +1,23 @@
 @model Tourbooking.ViewModels.AdminToursViewModel
 
 @{
-    ViewData["Title"] = "Tours";
+    ViewData["Title"] = "Tour";
     Layout = "_AdminLayout";
 }
 
 <section class="dashboard-hero">
     <div>
-        <h1>Tour Management</h1>
-        <p>Manage and curate your world-class travel experiences.</p>
+        <h1>Quản lý tour</h1>
+        <p>Quản lý và tuyển chọn các hành trình đẳng cấp.</p>
     </div>
-    <a asp-controller="Tours" asp-action="Create" class="primary-action">+ Add New Tour</a>
+    <a asp-controller="Tours" asp-action="Create" class="primary-action">+ Thêm tour mới</a>
 </section>
 
 <section class="stat-grid">
     <article class="stat-card">
         <div class="stat-icon">TO</div>
         <div>
-            <p>Active Tours</p>
+            <p>Tour đang hoạt động</p>
             <h2>@Model.TotalTours</h2>
         </div>
         <span class="stat-badge">+6%</span>
@@ -25,7 +25,7 @@
     <article class="stat-card">
         <div class="stat-icon">DS</div>
         <div>
-            <p>Destinations</p>
+            <p>Điểm đến</p>
             <h2>@Model.Destinations</h2>
         </div>
         <span class="stat-badge">+3%</span>
@@ -33,22 +33,22 @@
     <article class="stat-card">
         <div class="stat-icon">BR</div>
         <div>
-            <p>Avg. Booking Rate</p>
+            <p>Tỷ lệ đặt chỗ TB</p>
             <h2>@Model.AverageBookingRate%</h2>
         </div>
-        <span class="stat-badge">Stable</span>
+        <span class="stat-badge">Ổn định</span>
     </article>
 </section>
 
 <section class="panel-card">
     <div class="panel-header">
         <div>
-            <h3>Active Listings</h3>
-            <p>Latest tours currently visible to customers</p>
+                <h3>Tour đang hiển thị</h3>
+                <p>Những tour mới nhất đang hiển thị cho khách</p>
         </div>
         <div class="table-actions">
-            <button type="button">Filter</button>
-            <button type="button">Export CSV</button>
+                <button type="button">Lọc</button>
+                <button type="button">Xuất CSV</button>
         </div>
     </div>
 
@@ -56,12 +56,12 @@
         <table class="admin-table">
             <thead>
                 <tr>
-                    <th>Image</th>
-                    <th>Tour Name</th>
-                    <th>Location</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>Ảnh</th>
+                    <th>Tên tour</th>
+                    <th>Địa điểm</th>
+                    <th>Giá</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,8 +91,8 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a asp-controller="Tours" asp-action="Edit" asp-route-id="@tour.TourId" title="Edit">✎</a>
-                                <a asp-controller="Tours" asp-action="Delete" asp-route-id="@tour.TourId" title="Delete">🗑</a>
+                                <a asp-controller="Tours" asp-action="Edit" asp-route-id="@tour.TourId" title="Chỉnh sửa">✎</a>
+                                <a asp-controller="Tours" asp-action="Delete" asp-route-id="@tour.TourId" title="Xóa">🗑</a>
                             </div>
                         </td>
                     </tr>

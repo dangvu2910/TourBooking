@@ -1,23 +1,23 @@
 @model Tourbooking.ViewModels.AdminDashboardViewModel
 
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Bảng điều khiển";
     Layout = "_AdminLayout";
 }
 
 <section class="dashboard-hero">
     <div>
-        <h1>Dashboard Overview</h1>
-        <p>Welcome back, Curator. Here is what is happening across your travel ecosystem today.</p>
+        <h1>Tổng quan bảng điều khiển</h1>
+        <p>Chào mừng quay lại. Đây là những gì đang diễn ra trên hệ sinh thái du lịch hôm nay.</p>
     </div>
-    <div class="status-chip">Active Now</div>
+    <div class="status-chip">Đang hoạt động</div>
 </section>
 
 <section class="stat-grid">
     <article class="stat-card">
         <div class="stat-icon">TO</div>
         <div>
-            <p>Total Tours</p>
+            <p>Tổng số tour</p>
             <h2>@Model.TotalTours</h2>
         </div>
         <span class="stat-badge">+12%</span>
@@ -25,7 +25,7 @@
     <article class="stat-card">
         <div class="stat-icon">BK</div>
         <div>
-            <p>Total Bookings</p>
+            <p>Tổng số đặt chỗ</p>
             <h2>@Model.TotalBookings</h2>
         </div>
         <span class="stat-badge">+24%</span>
@@ -33,7 +33,7 @@
     <article class="stat-card">
         <div class="stat-icon">US</div>
         <div>
-            <p>Total Users</p>
+            <p>Tổng số người dùng</p>
             <h2>@Model.TotalUsers</h2>
         </div>
         <span class="stat-badge">+9%</span>
@@ -44,31 +44,31 @@
     <article class="panel-card">
         <div class="panel-header">
             <div>
-                <h3>Booking Trends</h3>
-                <p>Monthly overview of confirmed reservations</p>
+                <h3>Xu hướng đặt chỗ</h3>
+                <p>Tổng quan theo tháng về các đặt chỗ đã xác nhận</p>
             </div>
             <div class="segmented">
-                <button class="is-active" type="button">Monthly</button>
-                <button type="button">Weekly</button>
+                <button class="is-active" type="button">Theo tháng</button>
+                <button type="button">Theo tuần</button>
             </div>
         </div>
         <div class="chart-wrap">
-            <div class="bar" style="height: 48%"><span>Jan</span></div>
-            <div class="bar" style="height: 64%"><span>Feb</span></div>
-            <div class="bar" style="height: 54%"><span>Mar</span></div>
-            <div class="bar is-peak" style="height: 82%"><span>Apr</span></div>
-            <div class="bar" style="height: 58%"><span>May</span></div>
-            <div class="bar" style="height: 72%"><span>Jun</span></div>
+            <div class="bar" style="height: 48%"><span>Thg 1</span></div>
+            <div class="bar" style="height: 64%"><span>Thg 2</span></div>
+            <div class="bar" style="height: 54%"><span>Thg 3</span></div>
+            <div class="bar is-peak" style="height: 82%"><span>Thg 4</span></div>
+            <div class="bar" style="height: 58%"><span>Thg 5</span></div>
+            <div class="bar" style="height: 72%"><span>Thg 6</span></div>
         </div>
     </article>
 
     <article class="panel-card">
         <div class="panel-header">
             <div>
-                <h3>Recent Activity</h3>
-                <p>Latest platform alerts and events</p>
+                <h3>Hoạt động gần đây</h3>
+                <p>Cảnh báo và sự kiện mới nhất</p>
             </div>
-            <a class="panel-link" href="#">View all logs</a>
+            <a class="panel-link" href="#">Xem tất cả nhật ký</a>
         </div>
         <div class="activity-list">
             @foreach (var activity in Model.RecentActivities)
@@ -88,10 +88,10 @@
 <section class="panel-card top-tours">
     <div class="panel-header">
         <div>
-            <h3>Top Performing Tours</h3>
-            <p>High impact listings with the most momentum</p>
+            <h3>Tour hiệu quả nhất</h3>
+            <p>Những tour có hiệu suất và độ quan tâm cao</p>
         </div>
-        <a class="panel-link" asp-controller="Tours" asp-action="Index">Manage all</a>
+        <a class="panel-link" asp-controller="Tours" asp-action="Index">Quản lý tất cả</a>
     </div>
 
     <div class="tour-cards">
@@ -125,8 +125,8 @@
                     <div class="tour-placeholder"></div>
                 </div>
                 <div class="tour-body">
-                    <h4>Sample Tour</h4>
-                    <p>Awaiting data</p>
+                    <h4>Tour mẫu</h4>
+                    <p>Đang chờ dữ liệu</p>
                     <span>$0</span>
                 </div>
             </article>

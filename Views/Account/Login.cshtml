@@ -1,7 +1,7 @@
 @model Tourbooking.ViewModels.LoginViewModel
 
 @{
-    ViewData["Title"] = "Login - Tourbooking";
+    ViewData["Title"] = "Đăng nhập - Tourbooking";
     Layout = "_LayoutLogin";
 }
 
@@ -13,13 +13,13 @@
         <div class="login-side login-left">
             <div class="login-overlay">
                 <h1>Voyager</h1>
-                <p>Curating your journey through the world's most atmospheric landscapes.</p>
+                <p>Gợi ý hành trình của bạn qua những phong cảnh đầy chất thơ trên thế giới.</p>
                 
                 <div class="inspiration">
-                    <p class="quote">"Travel is the only thing you buy that makes you richer."</p>
+                    <p class="quote">"Du lịch là thứ duy nhất bạn mua mà làm bạn giàu lên."</p>
                     <div class="author-info">
-                        <img src="https://via.placeholder.com/40" alt="Author" class="author-avatar">
-                        <span>Elena S, Head Curator</span>
+                        <img src="https://via.placeholder.com/40" alt="Tác giả" class="author-avatar">
+                        <span>Elena S, Trưởng bộ phận tour</span>
                     </div>
                 </div>
             </div>
@@ -28,24 +28,24 @@
         <!-- Right Side: Login Form -->
         <div class="login-side login-right">
             <div class="login-form-wrapper">
-                <h2>Welcome back</h2>
-                <p class="subtitle">Please enter your details to access your dashboard.</p>
+                <h2>Chào mừng quay lại</h2>
+                <p class="subtitle">Vui lòng nhập thông tin để truy cập tài khoản.</p>
 
                 <form asp-action="Login" asp-controller="Account" method="post">
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                     <!-- Email Input -->
                     <div class="form-group">
-                        <label for="email">Email Address</label>
-                           <input asp-for="Email" class="form-control" placeholder="e.g. wanderer@voyager.com" />
+                                <label for="email">Địa chỉ email</label>
+                                    <input asp-for="Email" class="form-control" placeholder="ví dụ: traveler@voyager.com" />
                            <span asp-validation-for="Email" class="text-danger"></span>
                     </div>
 
                     <!-- Password Input -->
                     <div class="form-group">
                         <div class="password-header">
-                            <label for="password">Password</label>
-                            <a href="#" class="forgot-password">Forgot Password?</a>
+                            <label for="password">Mật khẩu</label>
+                            <a href="#" class="forgot-password">Quên mật khẩu?</a>
                         </div>
                            <input asp-for="Password" class="form-control" placeholder="••••••••" />
                            <span asp-validation-for="Password" class="text-danger"></span>
@@ -54,14 +54,14 @@
                     <!-- Remember Me -->
                     <div class="form-group checkbox-group">
                         <input asp-for="RememberMe" />
-                        <label asp-for="RememberMe">Keep me signed in for 30 days</label>
+                        <label asp-for="RememberMe">Ghi nhớ đăng nhập trong 30 ngày</label>
                     </div>
 
                     <!-- Sign In Button -->
-                    <button type="submit" class="btn-signin">Sign in to Voyager</button>
+                    <button type="submit" class="btn-signin">Đăng nhập Voyager</button>
 
                     <!-- Divider -->
-                    <div class="divider">Or continue with</div>
+                    <div class="divider">Hoặc tiếp tục với</div>
 
                     <!-- Social Login -->
                     <div class="social-login">
@@ -77,17 +77,17 @@
 
                     <!-- Sign Up Link -->
                     <p class="signup-link">
-                        Don't have an account? <a asp-action="Register" asp-controller="Account">Sign Up</a>
+                        Chưa có tài khoản? <a asp-action="Register" asp-controller="Account">Đăng ký</a>
                     </p>
                 </form>
 
                 <!-- Footer -->
                 <div class="login-footer">
-                    <p>© 2024 The Financial Voyager. All rights reserved.</p>
+                    <p>© 2024 Voyager. Bảo lưu mọi quyền.</p>
                     <div class="footer-links">
-                        <a href="#">Privacy Policy</a>
+                        <a href="#">Chính sách bảo mật</a>
                         <span>•</span>
-                        <a href="#">Terms</a>
+                        <a href="#">Điều khoản</a>
                     </div>
                 </div>
             </div>

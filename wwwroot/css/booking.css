@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Space+Grotesk:wght@400;500;600&display=swap");
 
 :root {
   --booking-bg: radial-gradient(circle at top, #ffffff 0%, #f6f2ee 50%, #f5efea 100%);
@@ -14,7 +14,7 @@
 .booking-page {
   background: var(--booking-bg);
   padding: 56px 0 72px;
-  font-family: "Space Grotesk", "Segoe UI", sans-serif;
+  font-family: "Be Vietnam Pro", "Space Grotesk", "Segoe UI", sans-serif;
   color: var(--booking-ink);
 }
 

@@ -1,7 +1,7 @@
 ﻿@model Tour
 
 @{
-    ViewData["Title"] = "Chi tiet tour";
+    ViewData["Title"] = "Chi tiết tour";
     var heroImage = !string.IsNullOrWhiteSpace(Model?.ImageUrl)
         ? Model.ImageUrl
         : "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80";
@@ -14,18 +14,18 @@
     <section class="tour-hero" style="background-image: url('@heroImage');">
         <div class="tour-hero-overlay">
             <div class="tour-hero-content">
-                <span class="tour-badge">HANH TRINH DAC SAC</span>
+                <span class="tour-badge">HÀNH TRÌNH ĐẶC SẮC</span>
                 <h1>@Model?.Name</h1>
                 <div class="tour-meta">
                     <span>📍 @Model?.Location</span>
                     <span>•</span>
-                    <span>4 ngay 3 dem</span>
+                    <span>4 ngày 3 đêm</span>
                 </div>
             </div>
             <div class="tour-price-card">
-                <span>BAT DAU TU</span>
+                <span>BẮT ĐẦU TỪ</span>
                 <strong>$@price.ToString("N0")</strong>
-                <small>/ nguoi</small>
+                <small>/ người</small>
             </div>
         </div>
     </section>
@@ -33,45 +33,45 @@
     <section class="tour-content">
         <div class="tour-left">
             <div class="tour-section">
-                <h2>Gioi thieu ve tour</h2>
-                <p>@(string.IsNullOrWhiteSpace(Model?.Description) ? "Chua co mo ta chi tiet. Vui long lien he de biet them thong tin." : Model.Description)</p>
+                <h2>Giới thiệu về tour</h2>
+                <p>@(string.IsNullOrWhiteSpace(Model?.Description) ? "Chưa có mô tả chi tiết. Vui lòng liên hệ để biết thêm thông tin." : Model.Description)</p>
                 <div class="tour-tags">
-                    <span>Wellness</span>
-                    <span>Light Hike</span>
-                    <span>Half Board</span>
-                    <span>4+ Stay</span>
+                    <span>Nghỉ dưỡng</span>
+                    <span>Đi bộ nhẹ</span>
+                    <span>Nửa ngày</span>
+                    <span>4+ đêm</span>
                 </div>
             </div>
 
             <div class="tour-section">
-                <h3>Hanh trinh cua ban</h3>
+                <h3>Hành trình của bạn</h3>
                 <div class="tour-journey">
                     <div class="journey-step">
                         <div class="step-index">01</div>
                         <div>
-                            <h4>Den noi va nghi ngoi</h4>
-                            <p>Don tai san bay va di chuyen ve khu nghi duong. Thuong thuc bua toi va nghi ngoai.</p>
+                            <h4>Đến nơi và nghỉ ngơi</h4>
+                            <p>Đón tại sân bay và di chuyển về khu nghỉ dưỡng. Thưởng thức bữa tối và nghỉ ngơi.</p>
                         </div>
                     </div>
                     <div class="journey-step">
                         <div class="step-index">02</div>
                         <div>
-                            <h4>Kham pha dia danh noi bat</h4>
-                            <p>Tron ven ngay tham quan voi huong dan vien dia phuong va thoi gian tu do.</p>
+                            <h4>Khám phá địa danh nổi bật</h4>
+                            <p>Trọn vẹn ngày tham quan với hướng dẫn viên địa phương và thời gian tự do.</p>
                         </div>
                     </div>
                     <div class="journey-step">
                         <div class="step-index">03</div>
                         <div>
-                            <h4>Thuong thuc van hoa ban dia</h4>
-                            <p>Giai nghiem am thuc va trai nghiem dia phuong doc dao.</p>
+                            <h4>Thưởng thức văn hóa bản địa</h4>
+                            <p>Trải nghiệm ẩm thực và văn hóa địa phương độc đáo.</p>
                         </div>
                     </div>
                     <div class="journey-step">
                         <div class="step-index">04</div>
                         <div>
-                            <h4>Ket thuc hanh trinh</h4>
-                            <p>Tu do mua sam va tra phong. Tien doan ra san bay.</p>
+                            <h4>Kết thúc hành trình</h4>
+                            <p>Tự do mua sắm và trả phòng. Tiễn đoàn ra sân bay.</p>
                         </div>
                     </div>
                 </div>
@@ -80,26 +80,26 @@
 
         <aside class="tour-right">
             <div class="tour-booking">
-                <h3>Chon ngay khoi hanh</h3>
+                <h3>Chọn ngày khởi hành</h3>
                 <div class="booking-field">
-                    <span>Ngay di</span>
+                    <span>Ngày đi</span>
                     <div class="booking-input">24/10/2024</div>
                 </div>
                 <div class="booking-field">
-                    <span>So khach</span>
-                    <div class="booking-input">2 nguoi</div>
+                    <span>Số khách</span>
+                    <div class="booking-input">2 người</div>
                 </div>
                 <div class="booking-total">
-                    <span>Tong gia</span>
+                    <span>Tổng giá</span>
                     <strong>$@((price * 2).ToString("N0"))</strong>
                 </div>
-                <a class="book-button" asp-controller="Home" asp-action="Booking" asp-route-tourId="@Model?.TourId">Dat ngay</a>
-                <p class="booking-note">Xac nhan nhanh, khong phi phat sinh.</p>
+                <a class="book-button" asp-controller="Home" asp-action="Booking" asp-route-tourId="@Model?.TourId">Đặt ngay</a>
+                <p class="booking-note">Xác nhận nhanh, không phí phát sinh.</p>
             </div>
 
             <div class="tour-guarantees">
-                <div class="guarantee-item">🛡️ Dat tour an toan</div>
-                <div class="guarantee-item">✅ Hoan huy linh hoat</div>
+                <div class="guarantee-item">🛡️ Đặt tour an toàn</div>
+                <div class="guarantee-item">✅ Hoàn hủy linh hoạt</div>
             </div>
         </aside>
     </section>

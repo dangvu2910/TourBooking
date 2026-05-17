@@ -1,12 +1,12 @@
 ﻿@model Tour
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Cập nhật tour";
 }
 
-<h1>Edit</h1>
+<h1>Cập nhật tour</h1>
 
-<h4>Tour</h4>
+<h4>Thông tin tour</h4>
 <hr />
 <div class="row">
     <div class="col-md-6">
@@ -38,7 +38,7 @@
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
                     <div style="margin-bottom: 10px;">
-                        <img src="@Model.ImageUrl" alt="Current Image" style="max-width: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+                        <img src="@Model.ImageUrl" alt="Hình ảnh hiện tại" style="max-width: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
                     </div>
                 }
             </div>
@@ -48,9 +48,9 @@
                 <small class="form-text text-muted">Để trống nếu không muốn thay đổi hình ảnh</small>
             </div>
             <div class="form-group">
-                <label class="control-label">Preview hình ảnh mới</label>
+                <label class="control-label">Xem trước hình ảnh mới</label>
                 <div id="imagePreview" style="margin-top: 10px;">
-                    <img id="previewImage" src="" alt="Preview" style="max-width: 300px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+                    <img id="previewImage" src="" alt="Xem trước" style="max-width: 300px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
                 </div>
             </div>
             <input type="hidden" asp-for="ImageUrl" id="imageUrlInput" />
@@ -60,14 +60,14 @@
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <input type="submit" value="Lưu" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index">Quay lại danh sách</a>
 </div>
 
 @section Scripts {

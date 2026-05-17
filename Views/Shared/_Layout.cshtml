@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,32 +22,32 @@
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-center">
                         <ul class="navbar-nav navbar-center">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
                             @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                             {
-                                <a class="nav-link text-dark" href="/Admin/Tours">Tours</a>
+                                <a class="nav-link text-dark" href="/Admin/Tours">Tour</a>
                             }
                             else
                             {
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Tours" asp-action="Index">Tours</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Tours" asp-action="Index">Tour</a>
                             }
                         </li>
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Dashboard">Admin</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Dashboard">Quản trị</a>
                             </li>
                         }
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Booking">Booking</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Booking">Đặt chỗ</a>
                         </li>
                     </ul>
                         <div class="d-flex gap-2 align-items-center navbar-auth">
                         @if (User?.Identity?.IsAuthenticated == true)
                         {
-                                var displayName = User.Identity?.Name ?? "User";
+                                var displayName = User.Identity?.Name ?? "Người dùng";
                                 var initial = !string.IsNullOrWhiteSpace(displayName) ? displayName.Substring(0, 1).ToUpperInvariant() : "U";
                                 <div class="dropdown user-menu">
                                     <button class="btn user-avatar dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -57,12 +57,12 @@
                                         <li class="px-3 py-2 small text-muted">@displayName</li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Profile</a>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Hồ sơ</a>
                                         </li>
                                         <li>
                                             <form asp-controller="Account" asp-action="Logout" method="post" class="px-3 py-2">
                                                 @Html.AntiForgeryToken()
-                                                <button type="submit" class="btn btn-outline-primary btn-sm w-100">Sign Out</button>
+                                                <button type="submit" class="btn btn-outline-primary btn-sm w-100">Đăng xuất</button>
                                             </form>
                                         </li>
                                     </ul>
@@ -70,8 +70,8 @@
                         }
                         else
                         {
-                            <a class="btn btn-outline-primary btn-sm" href="/Account/Login">Sign In</a>
-                            <a class="btn btn-primary btn-sm" href="/Account/Register">Sign Up</a>
+                            <a class="btn btn-outline-primary btn-sm" href="/Account/Login">Đăng nhập</a>
+                            <a class="btn btn-primary btn-sm" href="/Account/Register">Đăng ký</a>
                         }
                         </div>
                     </div>
@@ -90,37 +90,37 @@
             <div class="row mb-4">
                 <div class="col-md-3">
                     <h5>Voyager</h5>
-                    <p class="small text-muted">Redefining modern travel through curated experiences and seamless bookings.</p>
+                    <p class="small text-muted">Tái định nghĩa du lịch hiện đại với những hành trình được chọn lọc và đặt chỗ mượt mà.</p>
                 </div>
                 <div class="col-md-3">
-                    <h5>Quick Links</h5>
+                    <h5>Liên kết nhanh</h5>
                     <ul class="list-unstyled small">
-                        <li><a href="/Tours" class="text-decoration-none text-muted">Destinations</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Itineraries</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Travel Guides</a></li>
+                        <li><a href="/Tours" class="text-decoration-none text-muted">Điểm đến</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Lịch trình</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Cẩm nang du lịch</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
-                    <h5>Company</h5>
+                    <h5>Công ty</h5>
                     <ul class="list-unstyled small">
-                        <li><a href="#" class="text-decoration-none text-muted">About Us</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Privacy Policy</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Contact</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Về chúng tôi</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Chính sách bảo mật</a></li>
+                        <li><a href="#" class="text-decoration-none text-muted">Liên hệ</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
-                    <h5>Newsletter</h5>
-                    <p class="small text-muted">Get the latest travel inspiration in your inbox.</p>
+                    <h5>Bản tin</h5>
+                    <p class="small text-muted">Nhận gợi ý du lịch mới nhất trong hộp thư.</p>
                     <div class="input-group input-group-sm">
-                        <input type="email" class="form-control" placeholder="Email address">
+                        <input type="email" class="form-control" placeholder="Email">
                         <button class="btn btn-primary" type="button">→</button>
                     </div>
                 </div>
             </div>
             <div class="border-top border-secondary pt-3 text-center small text-muted">
-                © 2026 The Ethereal Voyager. All rights reserved. | 
-                <a href="#" class="text-decoration-none text-muted">TERMS</a> | 
-                <a href="#" class="text-decoration-none text-muted">COOKIES</a>
+                © 2026 The Ethereal Voyager. Bảo lưu mọi quyền. | 
+                <a href="#" class="text-decoration-none text-muted">ĐIỀU KHOẢN</a> | 
+                <a href="#" class="text-decoration-none text-muted">CHÍNH SÁCH COOKIE</a>
             </div>
         </div>
     </footer>

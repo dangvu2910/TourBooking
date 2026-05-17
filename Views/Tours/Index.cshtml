@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<Tour>
 
 @{
-    ViewData["Title"] = "Tours - Voyager";
+    ViewData["Title"] = "Tour - Voyager";
     var tours = Model?.ToList() ?? new List<Tour>();
     var currentPage = ViewData["CurrentPage"] as int? ?? 1;
     var totalPages = ViewData["TotalPages"] as int? ?? 1;
@@ -27,18 +27,18 @@
 <div class="tours-page">
     <div class="tours-shell">
         <aside class="filters-panel">
-            <h3>☰ Filters</h3>
+            <h3>☰ Bộ lọc</h3>
 
             <div class="filter-block">
-                <p class="filter-title">LOCATION</p>
+                <p class="filter-title">ĐỊA ĐIỂM</p>
                 <label><input type="checkbox" checked /> Scandinavia</label>
-                <label><input type="checkbox" /> Mediterranean</label>
-                <label><input type="checkbox" /> Southeast Asia</label>
-                <label><input type="checkbox" /> South America</label>
+                <label><input type="checkbox" /> Địa Trung Hải</label>
+                <label><input type="checkbox" /> Đông Nam Á</label>
+                <label><input type="checkbox" /> Nam Mỹ</label>
             </div>
 
             <div class="filter-block">
-                <p class="filter-title">PRICE RANGE</p>
+                <p class="filter-title">KHOẢNG GIÁ</p>
                 <input type="range" min="500" max="10000" value="3500" />
                 <div class="range-values">
                     <span>$500</span>
@@ -47,11 +47,11 @@
             </div>
 
             <div class="filter-block">
-                <p class="filter-title">DURATION</p>
+                <p class="filter-title">THỜI LƯỢNG</p>
                 <div class="duration-chips">
-                    <button type="button" class="chip active">3-5 Days</button>
-                    <button type="button" class="chip">1-2 Weeks</button>
-                    <button type="button" class="chip">1 Month+</button>
+                    <button type="button" class="chip active">3-5 ngày</button>
+                    <button type="button" class="chip">1-2 tuần</button>
+                    <button type="button" class="chip">1 tháng+</button>
                 </div>
             </div>
         </aside>
@@ -59,12 +59,12 @@
         <section class="tours-content">
             <div class="tours-head">
                 <div>
-                    <h1>Curated Journeys</h1>
-                    <p>Discover @totalTours exclusive experiences tailored for you.</p>
+                    <h1>Hành trình chọn lọc</h1>
+                    <p>Khám phá @totalTours trải nghiệm độc quyền dành cho bạn.</p>
                 </div>
                 <div class="sort-box">
-                    <span>Sort by:</span>
-                    <strong>Recommended</strong>
+                    <span>Sắp xếp theo:</span>
+                    <strong>Đề xuất</strong>
                 </div>
             </div>
 
@@ -94,7 +94,7 @@
                                     <h3>@item.Name <span>★ 4.8</span></h3>
                                     <p>@item.Description</p>
                                     <div class="tour-price">
-                                        <small>STARTING AT</small>
+                                        <small>BẮT ĐẦU TỪ</small>
                                         <strong>$@item.Price</strong>
                                         <span class="tour-cta">→</span>
                                     </div>
@@ -113,10 +113,10 @@
                                     <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
                                 </div>
                                 <div class="tour-info">
-                                    <h3>Tour title @(i + 1) <span>★ 0.0</span></h3>
+                                    <h3>Tên tour @(i + 1) <span>★ 0.0</span></h3>
                                     <p>Mô tả tour sẽ hiển thị tại đây.</p>
                                     <div class="tour-price">
-                                        <small>STARTING AT</small>
+                                        <small>BẮT ĐẦU TỪ</small>
                                         <strong>$0</strong>
                                         <span class="tour-cta">→</span>
                                     </div>
