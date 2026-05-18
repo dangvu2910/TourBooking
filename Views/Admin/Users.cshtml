@@ -43,11 +43,13 @@
                         </td>
                         <td class="table-muted">@user.Email</td>
                         <td>
-                            <span class="role-pill @(user.Role == "Admin" ? "admin" : "user")">@user.Role</span>
+                            @{ var roleLabel = user.Role == "Admin" ? "Quản trị" : "Người dùng"; }
+                            <span class="role-pill @(user.Role == "Admin" ? "admin" : "user")">@roleLabel</span>
                         </td>
                         <td>@user.JoinedDate</td>
                         <td>
-                            <span class="status-text @(user.Status == "Active" ? "active" : "paused")">@user.Status</span>
+                            @{ var statusLabel = user.Status == "Active" ? "Đang hoạt động" : "Tạm dừng"; }
+                            <span class="status-text @(user.Status == "Active" ? "active" : "paused")">@statusLabel</span>
                         </td>
                         <td>
                             <div class="action-buttons">

@@ -1,12 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Tourbooking.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.Password.RequiredLength = 6;
         options.Password.RequireDigit = true;
@@ -49,7 +50,7 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await EnsureRolesAndAdminAsync(builder.Configuration, roleManager, userManager);
 }
 
@@ -59,7 +60,7 @@ app.Run();
 static async Task EnsureRolesAndAdminAsync(
     IConfiguration configuration,
     RoleManager<IdentityRole> roleManager,
-    UserManager<IdentityUser> userManager)
+    UserManager<ApplicationUser> userManager)
 {
     var roles = new[] { "Admin", "User" };
     foreach (var role in roles)
@@ -80,7 +81,7 @@ static async Task EnsureRolesAndAdminAsync(
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser == null)
     {
-        adminUser = new IdentityUser
+        adminUser = new ApplicationUser
         {
             UserName = adminEmail,
             Email = adminEmail,

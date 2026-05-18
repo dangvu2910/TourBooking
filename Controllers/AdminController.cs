@@ -1,7 +1,10 @@
+using System;
+using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Tourbooking.Models;
 using Tourbooking.ViewModels;
 
 namespace Tourbooking.Controllers;
@@ -9,10 +12,11 @@ namespace Tourbooking.Controllers;
 [Authorize(Roles = "Admin")]
 public class AdminController : Controller
 {
+    private static readonly CultureInfo VnCulture = CultureInfo.GetCultureInfo("vi-VN");
     private readonly ApplicationDbContext _context;
-    private readonly UserManager<IdentityUser> _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public AdminController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+    public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
         _userManager = userManager;
@@ -36,14 +40,14 @@ public class AdminController : Controller
                     Name = t.Name,
                     ImageUrl = t.ImageUrl ?? string.Empty,
                     Location = t.Location,
-                    Metric = "$" + t.Price.ToString("0")
+                    Metric = t.Price.ToString("C0", VnCulture)
                 })
                 .ToList(),
             RecentActivities = new List<AdminActivity>
             {
-                new("New booking confirmed", "Awaiting booking module"),
-                new("Payment issue", "No payment gateway connected"),
-                new("New user registration", "Identity registration enabled")
+                new("Đặt chỗ mới được xác nhận", "Đang chờ mô đun đặt chỗ"),
+                new("Sự cố thanh toán", "Chưa kết nối cổng thanh toán"),
+                new("Người dùng mới đăng ký", "Đã kích hoạt đăng ký" )
             }
         };
 
@@ -70,7 +74,7 @@ public class AdminController : Controller
                 Name = t.Name,
                 Location = t.Location,
                 ImageUrl = t.ImageUrl ?? string.Empty,
-                Price = "$" + t.Price.ToString("0"),
+                Price = t.Price.ToString("C0", VnCulture),
                 Status = "Published"
             }).ToList()
         };
@@ -98,19 +102,57 @@ public class AdminController : Controller
         return View(model);
     }
 
-    public IActionResult Users()
+    public async Task<IActionResult> Users()
     {
+        var users = await _userManager.Users.AsNoTracking().ToListAsync();
+
+        var rows = new List<AdminUserRow>(users.Count);
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "User";
+            var status = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow
+                ? "Paused"
+                : "Active";
+            var displayName = string.IsNullOrWhiteSpace(user.UserName) ? user.Email ?? "" : user.UserName;
+            rows.Add(new AdminUserRow(
+                GetInitials(displayName),
+                displayName,
+                user.Email ?? string.Empty,
+                role,
+                "-",
+                status));
+        }
+
         var model = new AdminUsersViewModel
         {
-            TotalUsers = 128,
-            Users = new List<AdminUserRow>
-            {
-                new("LN", "Nguyen Linh Chi", "linhchi.nguyen@voyager.vn", "Admin", "12/03/2024", "Active"),
-                new("HL", "Tran Hoang Long", "hoanglong@gmail.com", "User", "05/02/2024", "Active"),
-                new("TH", "Le Thu Ha", "ha.le88@voyager.vn", "User", "15/01/2024", "Paused")
-            }
+            TotalUsers = users.Count,
+            Users = rows
         };
 
         return View(model);
+    }
+
+    private static string GetInitials(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "?";
+        }
+
+        var parts = value
+            .Trim()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (parts.Length == 1)
+        {
+            return parts[0].Length >= 2
+                ? string.Concat(parts[0][0], parts[0][1]).ToUpperInvariant()
+                : parts[0][0].ToString().ToUpperInvariant();
+        }
+
+        var first = parts[0][0];
+        var last = parts[^1][0];
+        return string.Concat(first, last).ToUpperInvariant();
     }
 }

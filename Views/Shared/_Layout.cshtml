@@ -20,28 +20,32 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="navbar-collapse collapse d-sm-inline-flex justify-content-center">
+                        @{
+                            var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                            var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+                        }
                         <ul class="navbar-nav navbar-center">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
+                            <a class="nav-link text-dark nav-link-pill @(currentController == "Home" && currentAction == "Index" ? "is-active" : "")" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
                         <li class="nav-item">
                             @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                             {
-                                <a class="nav-link text-dark" href="/Admin/Tours">Tour</a>
+                                <a class="nav-link text-dark nav-link-pill @(currentController == "Admin" && currentAction == "Tours" ? "is-active" : "")" href="/Admin/Tours">Tour</a>
                             }
                             else
                             {
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Tours" asp-action="Index">Tour</a>
+                                <a class="nav-link text-dark nav-link-pill @(currentController == "Tours" ? "is-active" : "")" asp-area="" asp-controller="Tours" asp-action="Index">Tour</a>
                             }
                         </li>
                         @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Dashboard">Quản trị</a>
+                                <a class="nav-link text-dark nav-link-pill @(currentController == "Admin" && currentAction == "Dashboard" ? "is-active" : "")" asp-area="" asp-controller="Admin" asp-action="Dashboard">Quản trị</a>
                             </li>
                         }
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Booking">Đặt chỗ</a>
+                            <a class="nav-link text-dark nav-link-pill @(currentController == "Home" && currentAction == "Booking" ? "is-active" : "")" asp-area="" asp-controller="Home" asp-action="Booking">Đặt chỗ</a>
                         </li>
                     </ul>
                         <div class="d-flex gap-2 align-items-center navbar-auth">

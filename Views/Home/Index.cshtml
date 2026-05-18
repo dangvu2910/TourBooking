@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Trang chủ - Voyager";
     var featuredTours = Model?.Take(4).ToList() ?? new List<Tour>();
+    var vnd = CultureInfo.GetCultureInfo("vi-VN");
 }
 
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
@@ -52,7 +53,7 @@
                                 <h3>@tour.Name</h3>
                                 <p class="tour-location">📍 @tour.Location</p>
                                 <div class="tour-meta">
-                                    <p>Từ $@tour.Price</p>
+                                    <p>Từ @tour.Price.ToString("C0", vnd)</p>
                                     <span>⭐ 4.8</span>
                                 </div>
                             </div>
@@ -69,7 +70,7 @@
                         <div class="tour-card-content">
                             <h3>Tour hoàng hôn Uluwatu</h3>
                             <p class="tour-location">📍 Bali, Indonesia</p>
-                            <div class="tour-meta"><p>Từ $499</p><span>⭐ 4.9</span></div>
+                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 499)</p><span>⭐ 4.9</span></div>
                         </div>
                     </article>
                     <article class="tour-card">
@@ -80,7 +81,7 @@
                         <div class="tour-card-content">
                             <h3>Khám phá đỉnh núi Alps</h3>
                             <p class="tour-location">📍 Zermatt, Thụy Sĩ</p>
-                            <div class="tour-meta"><p>Từ $1,250</p><span>⭐ 5.0</span></div>
+                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 1250)</p><span>⭐ 5.0</span></div>
                         </div>
                     </article>
                     <article class="tour-card">
@@ -91,7 +92,7 @@
                         <div class="tour-card-content">
                             <h3>Ngọc biển nước Ý</h3>
                             <p class="tour-location">📍 Amalfi, Ý</p>
-                            <div class="tour-meta"><p>Từ $890</p><span>⭐ 4.8</span></div>
+                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 890)</p><span>⭐ 4.8</span></div>
                         </div>
                     </article>
                     <article class="tour-card">
@@ -102,7 +103,7 @@
                         <div class="tour-card-content">
                             <h3>Biển xanh Aegean</h3>
                             <p class="tour-location">📍 Santorini, Hy Lạp</p>
-                            <div class="tour-meta"><p>Từ $620</p><span>⭐ 4.9</span></div>
+                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 620)</p><span>⭐ 4.9</span></div>
                         </div>
                     </article>
                 }

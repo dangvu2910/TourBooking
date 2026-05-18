@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Bảng điều khiển";
     Layout = "_AdminLayout";
+    var vnd = CultureInfo.GetCultureInfo("vi-VN");
 }
 
 <section class="dashboard-hero">
@@ -127,7 +128,7 @@
                 <div class="tour-body">
                     <h4>Tour mẫu</h4>
                     <p>Đang chờ dữ liệu</p>
-                    <span>$0</span>
+                    <span>@string.Format(vnd, "{0:C0}", 0)</span>
                 </div>
             </article>
         }

@@ -1,5 +1,15 @@
+@model Tour
+
 @{
     ViewData["Title"] = "Đặt chỗ - Voyager";
+    var heroImage = !string.IsNullOrWhiteSpace(Model?.ImageUrl)
+        ? Model.ImageUrl
+        : "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80";
+    var price = Model?.Price ?? 0;
+    var vnd = CultureInfo.GetCultureInfo("vi-VN");
+    var serviceFee = 45m;
+    var localTax = 120m;
+    var total = price + serviceFee + localTax;
 }
 
 <link rel="stylesheet" href="~/css/booking.css" asp-append-version="true" />
@@ -75,33 +85,33 @@
         <aside class="booking-right">
             <div class="summary-card">
                 <div class="summary-image">
-                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80" alt="Cảnh núi và hồ xanh" />
+                    <img src="@heroImage" alt="@Model?.Name" />
                 </div>
                 <div class="summary-body">
                     <div class="summary-title">
                         <div>
-                            <h3>Hành trình Alpine Whisper</h3>
-                            <p>📍 Alps, Thụy Sĩ</p>
+                            <h3>@Model?.Name</h3>
+                            <p>📍 @Model?.Location</p>
                         </div>
                         <span class="summary-rating">★ 4.9</span>
                     </div>
 
                     <div class="summary-line">
-                        <span>Giá cơ bản (2 người)</span>
-                        <strong>$1,450.00</strong>
+                        <span>Giá cơ bản</span>
+                        <strong>@price.ToString("C0", vnd)</strong>
                     </div>
                     <div class="summary-line">
                         <span>Phí dịch vụ</span>
-                        <strong>$45.00</strong>
+                        <strong>@serviceFee.ToString("C0", vnd)</strong>
                     </div>
                     <div class="summary-line">
                         <span>Thuế địa phương</span>
-                        <strong>$120.00</strong>
+                        <strong>@localTax.ToString("C0", vnd)</strong>
                     </div>
 
                     <div class="summary-total">
                         <span>Tổng thanh toán</span>
-                        <strong>$1,615.00</strong>
+                        <strong>@total.ToString("C0", vnd)</strong>
                     </div>
 
                     <button class="confirm-button" type="button">Xác nhận đặt chuyến</button>

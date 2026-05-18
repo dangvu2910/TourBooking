@@ -92,7 +92,17 @@
                         <td>@booking.Quantity</td>
                         <td class="table-strong">@booking.TotalPrice</td>
                         <td>
-                            <span class="status-pill @booking.Status.ToLower()">@booking.Status</span>
+                            @{
+                                var statusLabel = booking.Status switch
+                                {
+                                    "Confirmed" => "Đã xác nhận",
+                                    "Pending" => "Chờ xử lý",
+                                    "Processing" => "Đang xử lý",
+                                    "Cancelled" => "Đã hủy",
+                                    _ => booking.Status
+                                };
+                            }
+                            <span class="status-pill @booking.Status.ToLower()">@statusLabel</span>
                         </td>
                     </tr>
                 }

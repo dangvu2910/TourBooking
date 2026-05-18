@@ -49,6 +49,22 @@ body {
   justify-content: flex-end;
 }
 
+.nav-link-pill {
+  border-radius: 999px;
+  padding: 6px 14px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-link-pill.is-active {
+  background-color: #e8f0ff;
+  color: #0d5bd8;
+  font-weight: 600;
+}
+
+.nav-link-pill:hover {
+  background-color: #f1f5ff;
+}
+
 @media (min-width: 576px) {
   .navbar-center {
     position: absolute;

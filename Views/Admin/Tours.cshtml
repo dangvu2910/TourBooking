@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Tour";
     Layout = "_AdminLayout";
+    var vnd = CultureInfo.GetCultureInfo("vi-VN");
 }
 
 <section class="dashboard-hero">
@@ -87,7 +88,7 @@
                         <td>@tour.Location</td>
                         <td class="table-strong">@tour.Price</td>
                         <td>
-                            <span class="status-pill confirmed">@tour.Status</span>
+                            <span class="status-pill confirmed">Đã đăng</span>
                         </td>
                         <td>
                             <div class="action-buttons">

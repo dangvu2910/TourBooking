@@ -6,6 +6,7 @@
         ? Model.ImageUrl
         : "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80";
     var price = Model?.Price ?? 0;
+    var vnd = CultureInfo.GetCultureInfo("vi-VN");
 }
 
 <link rel="stylesheet" href="~/css/tour-details.css" asp-append-version="true" />
@@ -24,7 +25,7 @@
             </div>
             <div class="tour-price-card">
                 <span>BẮT ĐẦU TỪ</span>
-                <strong>$@price.ToString("N0")</strong>
+                <strong>@price.ToString("C0", vnd)</strong>
                 <small>/ người</small>
             </div>
         </div>
@@ -91,9 +92,16 @@
                 </div>
                 <div class="booking-total">
                     <span>Tổng giá</span>
-                    <strong>$@((price * 2).ToString("N0"))</strong>
+                    <strong>@(price * 2).ToString("C0", vnd)</strong>
                 </div>
-                <a class="book-button" asp-controller="Home" asp-action="Booking" asp-route-tourId="@Model?.TourId">Đặt ngay</a>
+                @if (User?.Identity?.IsAuthenticated == true)
+                {
+                    <a class="book-button" asp-controller="Home" asp-action="Booking" asp-route-tourId="@Model?.TourId">Đặt ngay</a>
+                }
+                else
+                {
+                    <a class="book-button" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Booking", "Home", new { tourId = Model?.TourId })">Đăng nhập để đặt</a>
+                }
                 <p class="booking-note">Xác nhận nhanh, không phí phát sinh.</p>
             </div>
 
