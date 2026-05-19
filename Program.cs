@@ -51,7 +51,10 @@ using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
     await EnsureRolesAndAdminAsync(builder.Configuration, roleManager, userManager);
+    await SeedToursAsync(dbContext);
 }
 
 
@@ -99,4 +102,46 @@ static async Task EnsureRolesAndAdminAsync(
     {
         await userManager.AddToRoleAsync(adminUser, "Admin");
     }
+}
+
+static async Task SeedToursAsync(ApplicationDbContext dbContext)
+{
+    if (await dbContext.Tours.AnyAsync())
+    {
+        return;
+    }
+
+    var tours = new List<Tour>
+    {
+        new Tour
+        {
+            Name = "Sa Pa 3N2D",
+            Location = "Lao Cai",
+            Price = 3200000m,
+            Description = "Kham pha Sa Pa, Fansipan va ban Cat Cat.",
+            ImageUrl = "/images/hinh-anh-sapa-dep-thung-lung-hung-vi.jpg",
+            CategoryId = 1
+        },
+        new Tour
+        {
+            Name = "Ha Long 2N1D",
+            Location = "Quang Ninh",
+            Price = 2500000m,
+            Description = "Du thuyen tren vinh Ha Long, tham hang Sung Sot.",
+            ImageUrl = "/images/halong.jpg",
+            CategoryId = 1
+        },
+        new Tour
+        {
+            Name = "Da Nang - Hoi An 4N3D",
+            Location = "Da Nang",
+            Price = 4200000m,
+            Description = "Ba Na Hills, Cau Vang va pho co Hoi An.",
+            ImageUrl = "/images/danang-hoian.jpg",
+            CategoryId = 2
+        }
+    };
+
+    dbContext.Tours.AddRange(tours);
+    await dbContext.SaveChangesAsync();
 }
