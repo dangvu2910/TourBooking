@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+namespace Tourbooking.Models;
+
 public class Tour
 {
     [Key]
