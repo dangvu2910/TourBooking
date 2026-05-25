@@ -28,6 +28,7 @@
             <form asp-action="Booking" method="post" class="booking-card" id="bookingForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="TourId" />
+                <input type="hidden" asp-for="PaymentMethod" />
                 <div class="card-title">
                     <span class="card-icon">◎</span>
                     <div>
@@ -66,25 +67,44 @@
                         <span asp-validation-for="GuestCount" class="text-danger"></span>
                     </div>
                 </div>
-            </form>
 
-            <div class="payment-card">
-                <h3>Phương thức thanh toán</h3>
-                <div class="payment-options">
-                    <button type="button" class="payment-option active">
-                        <span class="payment-icon">▭</span>
-                        Thẻ tín dụng
-                    </button>
-                    <button type="button" class="payment-option">
-                        <span class="payment-icon">$$</span>
-                        PayPal
-                    </button>
-                    <button type="button" class="payment-option">
-                        <span class="payment-icon">🏦</span>
-                        Chuyển khoản
-                    </button>
+                <div class="payment-card">
+                    <h3>Phương thức thanh toán</h3>
+                    <div class="payment-options">
+                        <button type="button" class="payment-option active" data-method="Card">
+                            <span class="payment-icon">▭</span>
+                            Thẻ tín dụng
+                        </button>
+                        <button type="button" class="payment-option" data-method="BankTransfer">
+                            <span class="payment-icon">🏦</span>
+                            Chuyển khoản
+                        </button>
+                    </div>
+
+                    <div class="payment-details bank-transfer-fields" data-method="BankTransfer">
+                        <div class="payment-detail-title">Thông tin chuyển khoản</div>
+                        <div class="bank-qr">
+                            <div class="bank-qr-header">
+                                <span>Quét QR BIDV</span>
+                                <span id="bankTransferAmount" class="bank-qr-amount"></span>
+                            </div>
+                            <img id="bankQrImage"
+                                 src="~/images/qrthanhtoan.jpg"
+                                 alt="QR chuyển khoản BIDV"
+                                 data-bank-code="BIDV"
+                                 data-account-number="6330966460"
+                                 data-account-name="BUI DANG VU"
+                                 data-add-info-template="thanh toan tour {TourId}" />
+                               <p class="bank-qr-note">Quét QR để thanh toán chuyển khoản.</p>
+                        </div>
+                        <input type="hidden" asp-for="BankName" />
+                        <input type="hidden" asp-for="BankAccountName" />
+                        <input type="hidden" asp-for="BankAccountNumber" />
+                        <input type="hidden" asp-for="BankReference" />
+                        <p class="payment-note">Giao dịch chuyển khoản sẽ ở trạng thái chờ xác nhận.</p>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
 
         <aside class="booking-right">
@@ -120,7 +140,7 @@
                     </div>
 
                     <button class="confirm-button" type="submit" form="bookingForm">Xác nhận đặt chuyến</button>
-                    <p class="summary-note">Giao dịch được bảo mật bởi Stripe</p>
+                    <p class="summary-note">Giao dịch được hỗ trợ bởi MoMo và chuyển khoản</p>
                 </div>
             </div>
 
@@ -141,6 +161,17 @@
             var serviceFee = document.getElementById("serviceFee");
             var localTax = document.getElementById("localTax");
             var totalPrice = document.getElementById("totalPrice");
+            var paymentOptions = document.querySelectorAll(".payment-option");
+            var paymentMethodInput = document.querySelector("input[name='PaymentMethod']");
+            var bankTransferFields = document.querySelector(".bank-transfer-fields");
+            var bankQrImage = document.getElementById("bankQrImage");
+            var bankTransferAmount = document.getElementById("bankTransferAmount");
+            var bankReferenceInput = document.querySelector("input[name='BankReference']");
+            var bankNameInput = document.querySelector("input[name='BankName']");
+            var bankAccountNameInput = document.querySelector("input[name='BankAccountName']");
+            var bankAccountNumberInput = document.querySelector("input[name='BankAccountNumber']");
+            var tourIdInput = document.querySelector("input[name='TourId']");
+            var emailInput = document.querySelector("input[name='Email']");
 
             if (!guestInput || !basePrice || !serviceFee || !localTax || !totalPrice) {
                 return;
@@ -160,11 +191,89 @@
 
                 var total = (priceValue * count) + serviceValue + taxValue;
                 totalPrice.textContent = formatter.format(total);
+                updateBankTransferDetails(total);
+            };
+
+            var buildAddInfo = function () {
+                if (!bankQrImage) {
+                    return "";
+                }
+
+                var template = bankQrImage.getAttribute("data-add-info-template") || "";
+                var tourId = tourIdInput ? tourIdInput.value : "";
+                var email = emailInput ? emailInput.value : "";
+                return template
+                    .replace("{TourId}", tourId)
+                    .replace("{Email}", email);
+            };
+
+            var updateBankTransferDetails = function (total) {
+                var amount = Math.max(0, Math.round(Number(total) || 0));
+                if (bankTransferAmount) {
+                    bankTransferAmount.textContent = formatter.format(amount);
+                }
+
+                var addInfo = buildAddInfo();
+                if (bankReferenceInput && !bankReferenceInput.value && addInfo) {
+                    bankReferenceInput.value = addInfo;
+                }
+
+                if (bankQrImage) {
+                    var bankCode = bankQrImage.getAttribute("data-bank-code") || "";
+                    var accountNumber = bankQrImage.getAttribute("data-account-number") || "";
+                    var accountName = bankQrImage.getAttribute("data-account-name") || "";
+                    if (bankNameInput) {
+                        bankNameInput.value = bankCode;
+                    }
+
+                    if (bankAccountNameInput) {
+                        bankAccountNameInput.value = accountName;
+                    }
+
+                    if (bankAccountNumberInput) {
+                        bankAccountNumberInput.value = accountNumber;
+                    }
+                    if (bankCode && accountNumber) {
+                        var qrUrl = "https://api.vietqr.io/image/" + bankCode + "-" + accountNumber + "-compact2.png?amount=" + amount;
+                        if (addInfo) {
+                            qrUrl += "&addInfo=" + encodeURIComponent(addInfo);
+                        }
+                        if (accountName) {
+                            qrUrl += "&accountName=" + encodeURIComponent(accountName);
+                        }
+                        bankQrImage.setAttribute("src", qrUrl);
+                    }
+                }
             };
 
             guestInput.addEventListener("input", updateTotal);
             guestInput.addEventListener("change", updateTotal);
             updateTotal();
+
+            var updatePaymentView = function (method) {
+                var normalized = method === "BankTransfer" ? "BankTransfer" : "Card";
+                if (paymentMethodInput) {
+                    paymentMethodInput.value = normalized;
+                }
+
+                paymentOptions.forEach(function (option) {
+                    var isActive = option.getAttribute("data-method") === normalized;
+                    option.classList.toggle("active", isActive);
+                });
+
+                if (bankTransferFields) {
+                    var showTransfer = normalized === "BankTransfer";
+                    bankTransferFields.classList.toggle("is-active", showTransfer);
+                }
+            };
+
+            paymentOptions.forEach(function (option) {
+                option.addEventListener("click", function () {
+                    updatePaymentView(option.getAttribute("data-method"));
+                });
+            });
+
+            updatePaymentView(paymentMethodInput ? paymentMethodInput.value : "Card");
         })();
     </script>
 }

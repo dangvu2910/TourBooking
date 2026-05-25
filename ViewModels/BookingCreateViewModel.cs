@@ -31,4 +31,22 @@ public class BookingCreateViewModel
 
     public decimal ServiceFee { get; set; } = 45000m;
     public decimal LocalTax { get; set; } = 120000m;
+
+    [StringLength(30)]
+    public string PaymentMethod { get; set; } = "Card";
+
+    [StringLength(80)]
+    public string? BankName { get; set; }
+
+    [StringLength(120)]
+    public string? BankAccountName { get; set; }
+
+    [StringLength(40)]
+    public string? BankAccountNumber { get; set; }
+
+    [StringLength(120)]
+    public string? BankReference { get; set; }
+
+    [StringLength(80)]
+    public string? TransactionCode { get; set; }
 }

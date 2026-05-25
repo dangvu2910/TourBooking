@@ -41,4 +41,5 @@ public class Booking
 
     public Tour? Tour { get; set; }
     public ApplicationUser? User { get; set; }
+    public List<Payment> Payments { get; set; } = new();
 }

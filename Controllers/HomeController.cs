@@ -57,7 +57,8 @@ namespace Tourbooking.Controllers
                 FullName = user?.FullName ?? string.Empty,
                 Email = user?.Email ?? string.Empty,
                 PhoneNumber = user?.PhoneNumber ?? string.Empty,
-                GuestCount = 2
+                GuestCount = 2,
+                PaymentMethod = "Card"
             };
 
             return View(model);
@@ -81,6 +82,10 @@ namespace Tourbooking.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            var paymentMethod = string.Equals(model.PaymentMethod, "BankTransfer", StringComparison.OrdinalIgnoreCase)
+                ? "BankTransfer"
+                : "Card";
+
             if (!ModelState.IsValid)
             {
                 model.TourName = tour.Name;
@@ -93,6 +98,7 @@ namespace Tourbooking.Controllers
             const decimal serviceFee = 45000m;
             const decimal localTax = 120000m;
             var total = (tour.Price * model.GuestCount) + serviceFee + localTax;
+            var paymentStatus = paymentMethod == "BankTransfer" ? "PendingConfirmation" : "Pending";
 
             var booking = new Booking
             {
@@ -104,10 +110,26 @@ namespace Tourbooking.Controllers
                 TravelDate = model.TravelDate ?? DateTime.Today,
                 GuestCount = model.GuestCount,
                 TotalPrice = total,
-                Status = "Pending"
+                Status = paymentStatus
+            };
+
+            var payment = new Payment
+            {
+                Booking = booking,
+                UserId = user.Id,
+                Amount = total,
+                Method = paymentMethod,
+                Status = paymentStatus,
+                Provider = paymentMethod == "Card" ? "MoMo" : null,
+                TransactionCode = model.TransactionCode?.Trim(),
+                BankName = paymentMethod == "BankTransfer" ? model.BankName?.Trim() : null,
+                BankAccountName = paymentMethod == "BankTransfer" ? booking.FullName : null,
+                BankAccountNumber = paymentMethod == "BankTransfer" ? model.BankAccountNumber?.Trim() : null,
+                BankReference = paymentMethod == "BankTransfer" ? model.BankReference?.Trim() : null
             };
 
             _context.Bookings.Add(booking);
+            _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
             TempData["BookingSuccess"] = "Đặt tour thành công. Cảm ơn bạn đã đặt chỗ!";
