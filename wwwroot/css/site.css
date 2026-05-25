@@ -49,6 +49,39 @@ body {
   justify-content: flex-end;
 }
 
+.auth-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.auth-pill .btn {
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-weight: 600;
+}
+
+.auth-pill .btn-outline-primary {
+  border: 0;
+  color: #1b2a4b;
+  background: transparent;
+}
+
+.auth-pill .btn-outline-primary:hover {
+  background: #eef3ff;
+  color: #0d5bd8;
+}
+
+.auth-pill .btn-primary {
+  border: 0;
+  box-shadow: 0 10px 18px rgba(13, 91, 216, 0.24);
+}
+
 .nav-link-pill {
   border-radius: 999px;
   padding: 6px 14px;

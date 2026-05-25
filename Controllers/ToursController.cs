@@ -23,7 +23,7 @@ namespace Tourbooking.Controllers
         }
 
         // GET: Tours
-        public async Task<IActionResult> Index(string? query, decimal? minPrice, decimal? maxPrice, int page = 1)
+        public async Task<IActionResult> Index(string? query, decimal? minPrice, decimal? maxPrice, string[]? regions, int page = 1)
         {
             if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
             {
@@ -33,6 +33,20 @@ namespace Tourbooking.Controllers
             const int pageSize = 6;
 
             var toursQuery = _context.Tours.AsQueryable();
+
+            var selectedRegions = (regions ?? Array.Empty<string>())
+                .Where(r => !string.IsNullOrWhiteSpace(r))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (selectedRegions.Length > 0)
+            {
+                var keywords = GetRegionKeywords(selectedRegions);
+                if (keywords.Count > 0)
+                {
+                    toursQuery = toursQuery.Where(t => keywords.Any(k => t.Location.Contains(k)));
+                }
+            }
 
             if (!string.IsNullOrWhiteSpace(query))
             {
@@ -73,6 +87,7 @@ namespace Tourbooking.Controllers
             ViewData["Query"] = query;
             ViewData["MinPrice"] = minPrice;
             ViewData["MaxPrice"] = maxPrice;
+            ViewData["Regions"] = selectedRegions;
 
             return View(tours);
         }
@@ -302,6 +317,48 @@ namespace Tourbooking.Controllers
                 tour.Price = currentCulturePrice;
                 ModelState.Remove(nameof(Tour.Price));
             }
+        }
+
+        private static List<string> GetRegionKeywords(IEnumerable<string> regions)
+        {
+            var regionKeywords = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["Miền Bắc"] = new[]
+                {
+                    "Hà Nội", "Ha Noi", "Hải Phòng", "Hai Phong", "Quảng Ninh", "Quang Ninh",
+                    "Lào Cai", "Lao Cai", "Sa Pa", "Sapa", "Hà Giang", "Ha Giang",
+                    "Sơn La", "Son La", "Mộc Châu", "Moc Chau", "Ninh Bình", "Ninh Binh"
+                },
+                ["Miền Trung"] = new[]
+                {
+                    "Đà Nẵng", "Da Nang", "Quảng Nam", "Quang Nam", "Hội An", "Hoi An",
+                    "Huế", "Hue", "Thừa Thiên", "Bình Định", "Binh Dinh", "Quy Nhơn", "Quy Nhon",
+                    "Phú Yên", "Phu Yen", "Khánh Hòa", "Khanh Hoa", "Nha Trang",
+                    "Đắk Lắk", "Dak Lak", "Lâm Đồng", "Lam Dong", "Đà Lạt", "Da Lat",
+                    "Quảng Ngãi", "Quang Ngai"
+                },
+                ["Miền Nam"] = new[]
+                {
+                    "TP Hồ Chí Minh", "Ho Chi Minh", "Sài Gòn", "Sai Gon",
+                    "Vũng Tàu", "Vung Tau", "Bà Rịa", "Ba Ria", "Cần Thơ", "Can Tho",
+                    "Kiên Giang", "Kien Giang", "Phú Quốc", "Phu Quoc", "Côn Đảo", "Con Dao",
+                    "Bình Ba", "Binh Ba", "Miền Tây", "Mien Tay"
+                }
+            };
+
+            var keywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var region in regions)
+            {
+                if (regionKeywords.TryGetValue(region, out var values))
+                {
+                    foreach (var value in values)
+                    {
+                        keywords.Add(value);
+                    }
+                }
+            }
+
+            return keywords.ToList();
         }
     }
 }
