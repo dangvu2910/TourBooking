@@ -1,0 +1,34 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Tourbooking.ViewModels;
+
+public class BookingCreateViewModel
+{
+    public int TourId { get; set; }
+    public string TourName { get; set; } = string.Empty;
+    public string TourLocation { get; set; } = string.Empty;
+    public string? TourImageUrl { get; set; }
+    public decimal TourPrice { get; set; }
+
+    [Required]
+    [StringLength(200)]
+    public string FullName { get; set; } = string.Empty;
+
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
+
+    [Required]
+    [Phone]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [Required]
+    [DataType(DataType.Date)]
+    public DateTime? TravelDate { get; set; }
+
+    [Range(1, 20)]
+    public int GuestCount { get; set; } = 2;
+
+    public decimal ServiceFee { get; set; } = 45000m;
+    public decimal LocalTax { get; set; } = 120000m;
+}

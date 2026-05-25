@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Tourbooking.Models;
 using Tourbooking.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace Tourbooking.Controllers
 {
@@ -12,15 +13,18 @@ namespace Tourbooking.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
+        private readonly ApplicationDbContext _context;
 
         public AccountController(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _configuration = configuration;
+            _context = context;
         }
 
         // GET: Account/Login
@@ -260,6 +264,41 @@ namespace Tourbooking.Controllers
             await _signInManager.RefreshSignInAsync(user);
             TempData["ChangePasswordMessage"] = "Đã đổi mật khẩu thành công.";
             return RedirectToAction(nameof(ChangePassword));
+        }
+
+        [Authorize]
+        public async Task<IActionResult> Bookings()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var bookings = await _context.Bookings
+                .Include(b => b.Tour)
+                .Where(b => b.UserId == user.Id)
+                .OrderByDescending(b => b.CreatedAt)
+                .ToListAsync();
+
+            var model = new AccountBookingsViewModel
+            {
+                TotalBookings = bookings.Count,
+                UpcomingBookings = bookings.Count(b => b.TravelDate.Date >= DateTime.Today && !string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
+                CompletedBookings = bookings.Count(b => b.TravelDate.Date < DateTime.Today && !string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
+                CancelledBookings = bookings.Count(b => string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
+                Bookings = bookings.Select(b => new AccountBookingRow(
+                    b.BookingId,
+                    b.Tour?.Name ?? "Tour",
+                    b.Tour?.Location ?? string.Empty,
+                    b.Tour?.ImageUrl,
+                    b.TravelDate,
+                    b.GuestCount,
+                    b.TotalPrice,
+                    b.Status)).ToList()
+            };
+
+            return View(model);
         }
     }
 }

@@ -10,4 +10,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<Tour> Tours { get; set; }
+    public DbSet<Booking> Bookings { get; set; }
 }
