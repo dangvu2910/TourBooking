@@ -21,8 +21,59 @@ namespace Tourbooking.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var tours = await _context.Tours.ToListAsync();
-            return View(tours);
+            var tours = await _context.Tours.AsNoTracking().ToListAsync();
+
+            var heroTours = tours
+                .Where(t => !string.IsNullOrWhiteSpace(t.ImageUrl))
+                .Take(3)
+                .ToList();
+
+            if (heroTours.Count < 3)
+            {
+                heroTours = tours.Take(3).ToList();
+            }
+
+            var dealsToday = tours
+                .OrderBy(t => t.Price)
+                .Take(3)
+                .ToList();
+
+            var monthlyDeals = tours
+                .OrderByDescending(t => t.Price)
+                .Take(3)
+                .ToList();
+
+            var topChoices = tours
+                .OrderByDescending(t => t.TourId)
+                .Take(4)
+                .ToList();
+
+            var promoCandidates = tours
+                .Where(t => !string.IsNullOrWhiteSpace(t.ImageUrl))
+                .Take(2)
+                .ToList();
+
+            var promoBanners = promoCandidates.Select((tour, index) => new HomePromoBanner
+            {
+                Title = index == 0 ? "Khuyen mai he ruc ro" : "Goi gia dinh tiet kiem",
+                Description = index == 0
+                    ? "Giam den 30% cho tour bien dao khi dat som."
+                    : "Mien phi tre nho duoi 5 tuoi cho cac tour cuoi tuan.",
+                Cta = index == 0 ? "Dat ngay" : "Lien he tu van",
+                ImageUrl = tour.ImageUrl ?? string.Empty,
+                TourId = tour.TourId
+            }).ToList();
+
+            var model = new HomePageViewModel
+            {
+                HeroTours = heroTours,
+                DealsToday = dealsToday,
+                MonthlyDeals = monthlyDeals,
+                TopChoices = topChoices,
+                PromoBanners = promoBanners
+            };
+
+            return View(model);
         }
 
         public IActionResult Privacy()
