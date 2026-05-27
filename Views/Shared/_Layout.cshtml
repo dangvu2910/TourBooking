@@ -74,8 +74,10 @@
                         }
                         else
                         {
-                            <a class="btn btn-outline-primary btn-sm" href="/Account/Login">Đăng nhập</a>
-                            <a class="btn btn-primary btn-sm" href="/Account/Register">Đăng ký</a>
+                            <div class="auth-pill">
+                                <a class="btn btn-outline-primary btn-sm" href="/Account/Login">Đăng nhập</a>
+                                <a class="btn btn-primary btn-sm" href="/Account/Register">Đăng ký</a>
+                            </div>
                         }
                         </div>
                     </div>
@@ -88,6 +90,17 @@
             @RenderBody()
         </main>
     </div>
+
+    @if (TempData["BookingSuccess"] is string bookingSuccess && !string.IsNullOrWhiteSpace(bookingSuccess))
+    {
+        <div class="toast-success" id="bookingSuccessToast">
+            <div class="toast-icon">✓</div>
+            <div>
+                <strong>Đặt chuyến thành công</strong>
+                <p>@bookingSuccess</p>
+            </div>
+        </div>
+    }
 
     <footer class="bg-dark text-light py-5 mt-5">
         <div class="container">
@@ -131,6 +144,19 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js"></script>
+    <script>
+        (function () {
+            var toast = document.getElementById("bookingSuccessToast");
+            if (!toast) {
+                return;
+            }
+
+            toast.classList.add("is-visible");
+            window.setTimeout(function () {
+                toast.classList.remove("is-visible");
+            }, 4500);
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

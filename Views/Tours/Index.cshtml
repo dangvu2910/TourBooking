@@ -9,6 +9,10 @@
     var query = ViewData["Query"] as string;
     var minPrice = ViewData["MinPrice"] as decimal?;
     var maxPrice = ViewData["MaxPrice"] as decimal?;
+    var selectedRegions = ViewData["Regions"] as string[] ?? Array.Empty<string>();
+    var maxPriceValue = maxPrice.HasValue ? (int)maxPrice.Value : 3500000;
+    var minPriceValue = 500000;
+    var maxRangeValue = 10000000;
     var vnd = CultureInfo.GetCultureInfo("vi-VN");
 
     // GÁN ẢNH TĨNH TẠI ĐÂY (nếu bạn muốn):
@@ -29,32 +33,52 @@
     <div class="tours-shell">
         <aside class="filters-panel">
             <h3>☰ Bộ lọc</h3>
+            <form method="get" asp-action="Index" class="filters-form">
+                @if (!string.IsNullOrWhiteSpace(query))
+                {
+                    <input type="hidden" name="query" value="@query" />
+                }
+                @if (minPrice.HasValue)
+                {
+                    <input type="hidden" name="minPrice" value="@minPrice" />
+                }
 
-            <div class="filter-block">
-                <p class="filter-title">ĐỊA ĐIỂM</p>
-                <label><input type="checkbox" checked /> Scandinavia</label>
-                <label><input type="checkbox" /> Địa Trung Hải</label>
-                <label><input type="checkbox" /> Đông Nam Á</label>
-                <label><input type="checkbox" /> Nam Mỹ</label>
-            </div>
-
-            <div class="filter-block">
-                <p class="filter-title">KHOẢNG GIÁ</p>
-                <input type="range" min="500" max="10000" value="3500" />
-                <div class="range-values">
-                    <span>@string.Format(vnd, "{0:C0}", 500)</span>
-                    <span>@string.Format(vnd, "{0:C0}", 10000)</span>
+                <div class="filter-block">
+                    <p class="filter-title">ĐỊA ĐIỂM</p>
+                    <label>
+                        <input type="checkbox" name="regions" value="Miền Bắc" @(selectedRegions.Contains("Miền Bắc") ? "checked" : "") />
+                        Miền Bắc
+                    </label>
+                    <label>
+                        <input type="checkbox" name="regions" value="Miền Trung" @(selectedRegions.Contains("Miền Trung") ? "checked" : "") />
+                        Miền Trung
+                    </label>
+                    <label>
+                        <input type="checkbox" name="regions" value="Miền Nam" @(selectedRegions.Contains("Miền Nam") ? "checked" : "") />
+                        Miền Nam
+                    </label>
                 </div>
-            </div>
 
-            <div class="filter-block">
-                <p class="filter-title">THỜI LƯỢNG</p>
-                <div class="duration-chips">
-                    <button type="button" class="chip active">3-5 ngày</button>
-                    <button type="button" class="chip">1-2 tuần</button>
-                    <button type="button" class="chip">1 tháng+</button>
+                <div class="filter-block">
+                    <p class="filter-title">KHOẢNG GIÁ</p>
+                    <input type="range" name="maxPrice" min="@minPriceValue" max="@maxRangeValue" step="100000" value="@maxPriceValue" id="maxPriceRange" />
+                    <div class="range-values">
+                        <span>@string.Format(vnd, "{0:C0}", minPriceValue)</span>
+                        <span id="maxPriceValue">@string.Format(vnd, "{0:C0}", maxPriceValue)</span>
+                    </div>
                 </div>
-            </div>
+
+                <div class="filter-block">
+                    <p class="filter-title">THỜI LƯỢNG</p>
+                    <div class="duration-chips">
+                        <button type="button" class="chip active">3-5 ngày</button>
+                        <button type="button" class="chip">1-2 tuần</button>
+                        <button type="button" class="chip">1 tháng+</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Áp dụng</button>
+            </form>
         </aside>
 
         <section class="tours-content">
@@ -133,13 +157,49 @@
             </div>
 
             <div class="pagination-ui">
-                <a class="page-btn" asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-query="@query" asp-route-minPrice="@minPrice" asp-route-maxPrice="@maxPrice">‹</a>
+                @{
+                    var regionQuery = selectedRegions.Length > 0
+                        ? string.Join("&", selectedRegions.Select(r => "regions=" + System.Uri.EscapeDataString(r)))
+                        : string.Empty;
+
+                    var prevUrl = Url.Action("Index", new { page = currentPage - 1, query, minPrice, maxPrice }) ?? string.Empty;
+                    var nextUrl = Url.Action("Index", new { page = currentPage + 1, query, minPrice, maxPrice }) ?? string.Empty;
+
+                    var prevLink = string.IsNullOrWhiteSpace(regionQuery) ? prevUrl : $"{prevUrl}&{regionQuery}";
+                    var nextLink = string.IsNullOrWhiteSpace(regionQuery) ? nextUrl : $"{nextUrl}&{regionQuery}";
+                }
+                <a class="page-btn" href="@prevLink">‹</a>
                 @for (var i = 1; i <= totalPages; i++)
                 {
-                    <a class="page-btn @(i == currentPage ? "active" : "")" asp-action="Index" asp-route-page="@i" asp-route-query="@query" asp-route-minPrice="@minPrice" asp-route-maxPrice="@maxPrice">@i</a>
+                    var pageUrl = Url.Action("Index", new { page = i, query, minPrice, maxPrice }) ?? string.Empty;
+                    var pageLink = string.IsNullOrWhiteSpace(regionQuery) ? pageUrl : $"{pageUrl}&{regionQuery}";
+                    <a class="page-btn @(i == currentPage ? "active" : "")" href="@pageLink">@i</a>
                 }
-                <a class="page-btn" asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-query="@query" asp-route-minPrice="@minPrice" asp-route-maxPrice="@maxPrice">›</a>
+                <a class="page-btn" href="@nextLink">›</a>
             </div>
         </section>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var range = document.getElementById("maxPriceRange");
+            var label = document.getElementById("maxPriceValue");
+
+            if (!range || !label) {
+                return;
+            }
+
+            var formatter = new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 });
+
+            var updateLabel = function () {
+                var value = Number(range.value || 0);
+                label.textContent = formatter.format(value);
+            };
+
+            range.addEventListener("input", updateLabel);
+            updateLabel();
+        })();
+    </script>
+}

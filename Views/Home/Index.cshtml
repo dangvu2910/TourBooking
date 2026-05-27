@@ -1,109 +1,114 @@
-﻿@model IEnumerable<Tour>
+﻿@model Tourbooking.ViewModels.HomePageViewModel
 
 @{
     ViewData["Title"] = "Trang chủ - Voyager";
-    var featuredTours = Model?.Take(4).ToList() ?? new List<Tour>();
     var vnd = CultureInfo.GetCultureInfo("vi-VN");
+    var fallbackImage = "/images/8c18b822-a807-48e3-b471-ef035840c58c_mientay.jpeg";
+    var heroSlides = Model?.HeroTours ?? new List<Tour>();
+    var dealsToday = Model?.DealsToday ?? new List<Tour>();
+    var monthlyDeals = Model?.MonthlyDeals ?? new List<Tour>();
+    var promoBanners = Model?.PromoBanners ?? new List<Tourbooking.ViewModels.HomePromoBanner>();
+    var topChoices = Model?.TopChoices ?? new List<Tour>();
+
+    string GetDiscount(int index) => index switch
+    {
+        0 => "-20%",
+        1 => "-15%",
+        2 => "-10%",
+        _ => "-8%"
+    };
+
+    string GetHeroTag(int index) => index switch
+    {
+        0 => "Tour uy tín hàng đầu",
+        1 => "Ưu đãi hè rực rỡ",
+        _ => "Săn cờ giờ vàng"
+    };
+
+    string NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+        {
+            return fallbackImage;
+        }
+
+        if (imageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase) || imageUrl.StartsWith("/"))
+        {
+            return imageUrl;
+        }
+
+        return $"/images/{imageUrl}";
+    }
 }
 
 <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 
 <div class="home-page">
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1>Hành trình đang <span class="highlight">gọi bạn.</span></h1>
-            <p>Những chuyến đi được chọn lọc cho người khám phá hiện đại. Khám phá điểm đến tuyệt đẹp trên toàn thế giới.</p>
-
+    <section class="hero-slider" aria-label="Tour nổi bật">
+        <div class="hero-slider-track">
+            @for (var i = 0; i < heroSlides.Count; i++)
+            {
+                var slide = heroSlides[i];
+                var heroImage = NormalizeImageUrl(slide.ImageUrl);
+                <article class="hero-slide @(i == 0 ? "is-active" : "")" style="background-image: url('@heroImage');">
+                    <div class="hero-overlay"></div>
+                    <div class="home-container hero-content">
+                        <span class="hero-tag">@GetHeroTag(i)</span>
+                        <h1>@slide.Name</h1>
+                        <p class="hero-price">Giá chỉ từ: <strong>@slide.Price.ToString("C0", vnd)</strong></p>
+                        <p class="hero-desc">@slide.Description</p>
+                        <div class="hero-actions">
+                            <a class="btn-hero primary" asp-controller="Tours" asp-action="Details" asp-route-id="@slide.TourId">Đặt ngay →</a>
+                            <a class="btn-hero ghost" href="/Home/Booking">Liên hệ tư vấn</a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+        <button class="hero-nav is-prev" type="button" aria-label="Trước">‹</button>
+        <button class="hero-nav is-next" type="button" aria-label="Sau">›</button>
+        <div class="hero-dots" role="tablist" aria-label="Chọn slide">
+            @for (var i = 0; i < heroSlides.Count; i++)
+            {
+                <button class="hero-dot @(i == 0 ? "is-active" : "")" type="button" aria-label="Slide @(i + 1)"></button>
+            }
+        </div>
+        <div class="hero-search">
             <form class="search-bar" asp-controller="Tours" asp-action="Index" method="get">
-                <input type="text" name="query" placeholder="Tên tour hoặc địa điểm" />
+                <input type="text" name="query" placeholder="Tìm kiếm tour, địa điểm..." />
+                <input type="number" name="guests" placeholder="Số người" min="1" step="1" />
                 <input type="number" name="maxPrice" placeholder="Giá tối đa" min="0" step="100" />
                 <button type="submit">Tìm kiếm</button>
             </form>
         </div>
     </section>
 
-    <section class="featured-section">
+    <section class="deal-section">
         <div class="home-container">
             <div class="section-header">
                 <div>
-                    <p class="label">HÀNH TRÌNH NỔI BẬT</p>
-                    <h2>Tour tiêu biểu</h2>
+                    <p class="label">GỢI Ý CHO BẠN</p>
+                    <h2>Ưu đãi hôm nay</h2>
                 </div>
-                <a asp-controller="Tours" asp-action="Index" class="view-all-link">Xem tất cả điểm đến →</a>
+                <a asp-controller="Tours" asp-action="Index" class="view-all-link">Xem thêm →</a>
             </div>
-
-            <div class="featured-grid">
-                @if (featuredTours.Any())
+            <div class="deal-grid">
+                @for (var i = 0; i < dealsToday.Count; i++)
                 {
-                    @foreach (var tour in featuredTours)
-                    {
-                        <article class="tour-card">
-                            <div class="tour-card-image">
-                                @if (!string.IsNullOrWhiteSpace(tour.ImageUrl))
-                                {
-                                    <img src="@tour.ImageUrl" alt="@tour.Name" />
-                                }
-                                else
-                                {
-                                    <div class="placeholder-image"></div>
-                                }
-                                <span class="tour-card-badge">NỔI BẬT</span>
+                    var deal = dealsToday[i];
+                    var dealImage = NormalizeImageUrl(deal.ImageUrl);
+                    <article class="deal-card">
+                        <a class="deal-image" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">
+                            <img src="@dealImage" alt="@deal.Name" />
+                            <span class="deal-badge">@GetDiscount(i)</span>
+                        </a>
+                        <div class="deal-content">
+                            <h3>@deal.Name</h3>
+                            <p class="deal-location">@deal.Location</p>
+                            <div class="deal-meta">
+                                <span class="price">@deal.Price.ToString("C0", vnd)</span>
+                                <a class="deal-link" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">Đặt tour →</a>
                             </div>
-                            <div class="tour-card-content">
-                                <h3>@tour.Name</h3>
-                                <p class="tour-location">📍 @tour.Location</p>
-                                <div class="tour-meta">
-                                    <p>Từ @tour.Price.ToString("C0", vnd)</p>
-                                    <span>⭐ 4.8</span>
-                                </div>
-                            </div>
-                        </article>
-                    }
-                }
-                else
-                {
-                    <article class="tour-card">
-                        <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=700&q=80" alt="Tour hoàng hôn Uluwatu" />
-                            <span class="tour-card-badge">XU HƯỚNG</span>
-                        </div>
-                        <div class="tour-card-content">
-                            <h3>Tour hoàng hôn Uluwatu</h3>
-                            <p class="tour-location">📍 Bali, Indonesia</p>
-                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 499)</p><span>⭐ 4.9</span></div>
-                        </div>
-                    </article>
-                    <article class="tour-card">
-                        <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=700&q=80" alt="Khám phá đỉnh núi Alps" />
-                            <span class="tour-card-badge">NỔI BẬT</span>
-                        </div>
-                        <div class="tour-card-content">
-                            <h3>Khám phá đỉnh núi Alps</h3>
-                            <p class="tour-location">📍 Zermatt, Thụy Sĩ</p>
-                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 1250)</p><span>⭐ 5.0</span></div>
-                        </div>
-                    </article>
-                    <article class="tour-card">
-                        <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=700&q=80" alt="Ngọc biển nước Ý" />
-                            <span class="tour-card-badge">NỔI BẬT</span>
-                        </div>
-                        <div class="tour-card-content">
-                            <h3>Ngọc biển nước Ý</h3>
-                            <p class="tour-location">📍 Amalfi, Ý</p>
-                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 890)</p><span>⭐ 4.8</span></div>
-                        </div>
-                    </article>
-                    <article class="tour-card">
-                        <div class="tour-card-image">
-                            <img src="https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff?auto=format&fit=crop&w=700&q=80" alt="Biển xanh Aegean" />
-                            <span class="tour-card-badge">XU HƯỚNG</span>
-                        </div>
-                        <div class="tour-card-content">
-                            <h3>Biển xanh Aegean</h3>
-                            <p class="tour-location">📍 Santorini, Hy Lạp</p>
-                            <div class="tour-meta"><p>Từ @string.Format(vnd, "{0:C0}", 620)</p><span>⭐ 4.9</span></div>
                         </div>
                     </article>
                 }
@@ -111,33 +116,159 @@
         </div>
     </section>
 
-    <section class="travel-way-section">
+    <section class="deal-section alt">
         <div class="home-container">
-            <h2 class="travel-way-title">Du lịch theo cách của bạn</h2>
-            <p class="travel-way-subtitle">Chúng tôi mang đến sự linh hoạt và chuyên môn để tạo hành trình hoàn hảo.</p>
-
-            <div class="travel-way-grid">
-                <article class="travel-way-image">
-                    <img src="https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=1200&q=80" alt="Hành trình theo nhóm" />
-                    <div class="travel-way-overlay">
-                        <h3>Hành trình theo nhóm</h3>
-                        <p>Kết nối với bạn đồng hành và khám phá những cảnh đẹp ấn tượng.</p>
-                    </div>
-                </article>
-
-                <div class="travel-way-features">
-                    <article class="feature-card is-primary">
-                        <div class="feature-card-icon">🛡️</div>
-                        <h4>An toàn & tin cậy</h4>
-                        <p>Mỗi tour được thẩm định bởi chuyên gia địa phương.</p>
-                    </article>
-                    <article class="feature-card">
-                        <div class="feature-card-icon">🎧</div>
-                        <h4>Hỗ trợ 24/7</h4>
-                        <p>Chuyên gia du lịch luôn sẵn sàng hỗ trợ hành trình.</p>
-                    </article>
+            <div class="section-header">
+                <div>
+                    <p class="label">ƯU ĐÃI THÁNG</p>
+                    <h2>Chọn tour hot trong tháng</h2>
                 </div>
+            </div>
+            <div class="deal-grid">
+                @for (var i = 0; i < monthlyDeals.Count; i++)
+                {
+                    var deal = monthlyDeals[i];
+                    var dealImage = NormalizeImageUrl(deal.ImageUrl);
+                    <article class="deal-card compact">
+                        <a class="deal-image" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">
+                            <img src="@dealImage" alt="@deal.Name" />
+                            <span class="deal-badge">@GetDiscount(i)</span>
+                        </a>
+                        <div class="deal-content">
+                            <h3>@deal.Name</h3>
+                            <p class="deal-location">@deal.Location</p>
+                            <div class="deal-meta">
+                                <span class="price">@deal.Price.ToString("C0", vnd)</span>
+                                <a class="deal-link" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">Xem chi tiết →</a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="promo-section">
+        <div class="home-container">
+            <div class="section-header">
+                <div>
+                    <p class="label">KHUYẾN MÃI</p>
+                    <h2>Deal tốt - đặt sớm</h2>
+                </div>
+            </div>
+            <div class="promo-grid">
+                @foreach (var promo in promoBanners)
+                {
+                    var promoImage = NormalizeImageUrl(promo.ImageUrl);
+                    <article class="promo-card" style="background-image: url('@promoImage');">
+                        <div class="promo-overlay"></div>
+                        <div class="promo-content">
+                            <h3>@promo.Title</h3>
+                            <p>@promo.Description</p>
+                            @if (promo.TourId.HasValue)
+                            {
+                                <a class="btn-hero ghost" asp-controller="Tours" asp-action="Details" asp-route-id="@promo.TourId">@promo.Cta →</a>
+                            }
+                            else
+                            {
+                                <a class="btn-hero ghost" asp-controller="Tours" asp-action="Index">@promo.Cta →</a>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="top-choice-section">
+        <div class="home-container">
+            <div class="section-header">
+                <div>
+                    <p class="label">TOP LỰA CHỌN THÁNG</p>
+                    <h2>Được nhiều khách yêu thích</h2>
+                </div>
+                <a asp-controller="Tours" asp-action="Index" class="view-all-link">Khám phá thêm →</a>
+            </div>
+            <div class="top-choice-grid">
+                @foreach (var choice in topChoices)
+                {
+                    var choiceImage = NormalizeImageUrl(choice.ImageUrl);
+                    <article class="top-choice-card">
+                        <a class="top-choice-image" asp-controller="Tours" asp-action="Details" asp-route-id="@choice.TourId">
+                            <img src="@choiceImage" alt="@choice.Name" />
+                        </a>
+                        <div class="top-choice-content">
+                            <h3>@choice.Name</h3>
+                            <p>@choice.Location</p>
+                            <div class="top-choice-meta">
+                                <span class="price">@choice.Price.ToString("C0", vnd)</span>
+                                <span class="rating">⭐ 4.8</span>
+                            </div>
+                        </div>
+                    </article>
+                }
             </div>
         </div>
     </section>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var slider = document.querySelector(".hero-slider");
+            if (!slider) {
+                return;
+            }
+
+            var slides = Array.from(slider.querySelectorAll(".hero-slide"));
+            var dots = Array.from(slider.querySelectorAll(".hero-dot"));
+            var prev = slider.querySelector(".hero-nav.is-prev");
+            var next = slider.querySelector(".hero-nav.is-next");
+            var current = 0;
+            var timerId;
+
+            var setActive = function (index) {
+                slides.forEach(function (slide, idx) {
+                    slide.classList.toggle("is-active", idx === index);
+                });
+                dots.forEach(function (dot, idx) {
+                    dot.classList.toggle("is-active", idx === index);
+                });
+                current = index;
+            };
+
+            var step = function (dir) {
+                var nextIndex = (current + dir + slides.length) % slides.length;
+                setActive(nextIndex);
+            };
+
+            var restartTimer = function () {
+                if (timerId) {
+                    window.clearInterval(timerId);
+                }
+                timerId = window.setInterval(function () {
+                    step(1);
+                }, 6000);
+            };
+
+            prev.addEventListener("click", function () {
+                step(-1);
+                restartTimer();
+            });
+
+            next.addEventListener("click", function () {
+                step(1);
+                restartTimer();
+            });
+
+            dots.forEach(function (dot, idx) {
+                dot.addEventListener("click", function () {
+                    setActive(idx);
+                    restartTimer();
+                });
+            });
+
+            restartTimer();
+        })();
+    </script>
+}

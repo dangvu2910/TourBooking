@@ -196,6 +196,77 @@
   background: #ffffff;
 }
 
+.payment-details {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed #e3d9d1;
+  background: #fbf9f7;
+}
+
+.payment-detail-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--booking-ink);
+}
+
+.bank-transfer-fields {
+  display: none;
+}
+
+.bank-transfer-fields.is-active {
+  display: block;
+}
+
+.payment-grid-single {
+  margin-top: 12px;
+}
+
+.payment-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--booking-muted);
+}
+
+.bank-qr {
+  margin-bottom: 16px;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid var(--booking-border);
+}
+
+.bank-qr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: var(--booking-ink);
+}
+
+.bank-qr-amount {
+  color: var(--booking-primary);
+}
+
+.bank-qr img {
+  width: 100%;
+  max-width: 260px;
+  justify-self: center;
+  border-radius: 12px;
+  border: 1px solid #eee4dc;
+  background: #ffffff;
+  padding: 6px;
+}
+
+.bank-qr-note {
+  margin: 0;
+  font-size: 12px;
+  color: var(--booking-muted);
+  text-align: center;
+}
+
 .payment-icon {
   font-size: 18px;
 }
