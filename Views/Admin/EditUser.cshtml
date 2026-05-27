@@ -1,0 +1,122 @@
+@model Tourbooking.ViewModels.EditUserViewModel
+
+@{
+    ViewData["Title"] = "Chỉnh sửa người dùng";
+    Layout = "_AdminLayout";
+}
+
+<section class="dashboard-hero">
+    <div>
+        <p class="eyebrow">Hệ thống quản trị</p>
+        <h1>Chỉnh sửa người dùng</h1>
+    </div>
+</section>
+
+<section class="panel-card">
+    <form asp-action="EditUser" method="post" class="admin-form">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <div class="admin-form-grid">
+            <label>
+                <span>Họ và tên</span>
+                <input asp-for="FullName" type="text" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Email</span>
+                <input asp-for="Email" type="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Số điện thoại</span>
+                <input asp-for="PhoneNumber" type="text" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Địa chỉ</span>
+                <input asp-for="Address" type="text" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Vai trò</span>
+                <select asp-for="Role">
+                    <option value="User">Người dùng</option>
+                    <option value="Admin">Quản trị</option>
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Mật khẩu mới</span>
+                <div class="password-wrap">
+                    <input asp-for="NewPassword" type="password" id="edit-user-password" />
+                    <button type="button" class="password-toggle" id="edit-user-toggle" aria-label="Hiện mật khẩu" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <span asp-validation-for="NewPassword" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Xác nhận mật khẩu</span>
+                <div class="password-wrap">
+                    <input asp-for="ConfirmPassword" type="password" id="edit-user-confirm-password" />
+                    <button type="button" class="password-toggle" id="edit-user-confirm-toggle" aria-label="Hiện mật khẩu" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </label>
+        </div>
+
+        <div class="admin-form-actions">
+            <a class="ghost-action" asp-action="Users">Hủy</a>
+            <button type="submit" class="primary-action">Lưu thay đổi</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const editToggle = document.getElementById('edit-user-toggle');
+        const editConfirmToggle = document.getElementById('edit-user-confirm-toggle');
+        const editPassword = document.getElementById('edit-user-password');
+        const editConfirmPassword = document.getElementById('edit-user-confirm-password');
+
+        const toggleEditPasswords = () => {
+            if (!editPassword) {
+                return;
+            }
+            const show = editPassword.type === 'password';
+            const type = show ? 'text' : 'password';
+            editPassword.type = type;
+            if (editConfirmPassword) {
+                editConfirmPassword.type = type;
+            }
+            if (editToggle) {
+                editToggle.setAttribute('aria-pressed', show);
+                editToggle.classList.toggle('is-on', show);
+            }
+            if (editConfirmToggle) {
+                editConfirmToggle.setAttribute('aria-pressed', show);
+                editConfirmToggle.classList.toggle('is-on', show);
+            }
+            editPassword.focus();
+        };
+
+        if (editToggle) {
+            editToggle.addEventListener('click', toggleEditPasswords);
+        }
+
+        if (editConfirmToggle) {
+            editConfirmToggle.addEventListener('click', toggleEditPasswords);
+        }
+    </script>
+}

@@ -28,8 +28,6 @@
                 <a class="nav-link @(currentController == "Admin" && currentAction == "Users" ? "is-active" : "")" href="/Admin/Users">Người dùng</a>
             </nav>
 
-            <button type="button" class="cta-button">Thêm tour mới</button>
-
             <div class="admin-footer-links">
                 <a href="#">Cài đặt</a>
                 <a href="#">Hỗ trợ</a>
@@ -58,5 +56,8 @@
             </main>
         </div>
     </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

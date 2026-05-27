@@ -6,6 +6,7 @@ public class LoginViewModel
 {
     [Required(ErrorMessage = "Vui lòng nhập email.")]
     [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+    [RegularExpression("^[a-zA-Z0-9._%+-]+@gmail\\.com$", ErrorMessage = "Email phải có dạng xxx@gmail.com.")]
     [Display(Name = "Email")]
     public string Email { get; set; } = string.Empty;
 

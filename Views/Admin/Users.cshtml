@@ -11,8 +11,8 @@
         <h1>Quản lý người dùng</h1>
     </div>
     <div class="hero-actions">
-        <button type="button" class="ghost-action">Xuất báo cáo</button>
-        <button type="button" class="primary-action">Thêm người dùng mới</button>
+        <button type="button" class="ghost-action" id="export-users" data-export-url="@Url.Action("ExportUsers", "Admin")">Xuất báo cáo</button>
+        <a class="primary-action" asp-controller="Admin" asp-action="CreateUser">Thêm người dùng mới</a>
     </div>
 </section>
 
@@ -53,8 +53,11 @@
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <button type="button" class="icon-button">✎</button>
-                                <button type="button" class="icon-button">⋯</button>
+                                <a class="icon-button" asp-action="EditUser" asp-route-id="@user.Id" title="Chỉnh sửa">✎</a>
+                                <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" class="inline-form" onsubmit="return confirm('Bạn chắc chắn muốn xóa người dùng này?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="icon-button is-danger" title="Xóa">🗑</button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -64,11 +67,94 @@
     </div>
 
     <div class="table-footer">
-        <span>Hiển thị 1-@Model.Users.Count của @Model.TotalUsers người dùng</span>
+        @{
+            var startIndex = Model.TotalUsers == 0 ? 0 : (Model.CurrentPage - 1) * Model.PageSize + 1;
+            var endIndex = Model.TotalUsers == 0 ? 0 : Model.CurrentPage * Model.PageSize;
+            if (endIndex > Model.TotalUsers)
+            {
+                endIndex = Model.TotalUsers;
+            }
+        }
+        <span>Hiển thị @startIndex-@endIndex của @Model.TotalUsers người dùng</span>
         <div class="pager">
-            <button type="button">1</button>
-            <button type="button" class="is-active">2</button>
-            <button type="button">3</button>
+            @if (Model.CurrentPage > 1)
+            {
+                <a class="page-btn" asp-action="Users" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">‹</span>
+            }
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Users" asp-route-page="@i">@i</a>
+            }
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a class="page-btn" asp-action="Users" asp-route-page="@(Model.CurrentPage + 1)">›</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">›</span>
+            }
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script>
+        const exportButton = document.getElementById('export-users');
+
+        const downloadFallback = (url) => {
+            window.location.href = url;
+        };
+
+        const pad2 = (value) => String(value).padStart(2, '0');
+
+        if (exportButton) {
+            exportButton.addEventListener('click', async () => {
+                const url = exportButton.getAttribute('data-export-url');
+                if (!url) {
+                    return;
+                }
+
+                if (!window.showSaveFilePicker) {
+                    downloadFallback(url);
+                    return;
+                }
+
+                try {
+                    const now = new Date();
+                    const stamp = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}-${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
+                    const suggestedName = `users-report-${stamp}.xlsx`;
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName,
+                        types: [
+                            {
+                                description: 'Excel Workbook',
+                                accept: {
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+                                }
+                            }
+                        ]
+                    });
+
+                    const response = await fetch(url, { credentials: 'same-origin' });
+                    if (!response.ok) {
+                        throw new Error('Export failed');
+                    }
+
+                    const blob = await response.blob();
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                } catch (error) {
+                    if (error && error.name === 'AbortError') {
+                        return;
+                    }
+                    downloadFallback(url);
+                }
+            });
+        }
+    </script>
+}

@@ -1,5 +1,7 @@
 using System;
 using System.Globalization;
+using System.IO;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -102,9 +104,32 @@ public class AdminController : Controller
         return View(model);
     }
 
-    public async Task<IActionResult> Users()
+    public async Task<IActionResult> Users(int page = 1)
     {
-        var users = await _userManager.Users.AsNoTracking().ToListAsync();
+        const int pageSize = 10;
+        var usersQuery = _userManager.Users.AsNoTracking().OrderBy(u => u.Email);
+        var totalUsers = await usersQuery.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
+
+        if (totalPages == 0)
+        {
+            totalPages = 1;
+        }
+
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        var users = await usersQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
         var rows = new List<AdminUserRow>(users.Count);
         foreach (var user in users)
@@ -115,22 +140,279 @@ public class AdminController : Controller
                 ? "Paused"
                 : "Active";
             var displayName = string.IsNullOrWhiteSpace(user.UserName) ? user.Email ?? "" : user.UserName;
+            var joinedDate = user.CreatedAt == default
+                ? "-"
+                : user.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy");
             rows.Add(new AdminUserRow(
+                user.Id,
                 GetInitials(displayName),
                 displayName,
                 user.Email ?? string.Empty,
                 role,
-                "-",
+                joinedDate,
                 status));
         }
 
         var model = new AdminUsersViewModel
         {
-            TotalUsers = users.Count,
+            TotalUsers = totalUsers,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            PageSize = pageSize,
             Users = rows
         };
 
         return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportUsers()
+    {
+        var users = await _userManager.Users.AsNoTracking().OrderBy(u => u.Email).ToListAsync();
+
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Users");
+        sheet.Cell(1, 1).Value = "Ho va ten";
+        sheet.Cell(1, 2).Value = "Email";
+        sheet.Cell(1, 3).Value = "Vai tro";
+        sheet.Cell(1, 4).Value = "Ngay gia nhap";
+        sheet.Cell(1, 5).Value = "Trang thai";
+        sheet.Cell(1, 6).Value = "So dien thoai";
+        sheet.Cell(1, 7).Value = "Dia chi";
+
+        var row = 2;
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            var role = roles.FirstOrDefault() ?? "User";
+            var roleLabel = role == "Admin" ? "Quan tri" : "Nguoi dung";
+            var status = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow
+                ? "Tam dung"
+                : "Dang hoat dong";
+            var joinedDate = user.CreatedAt == default
+                ? string.Empty
+                : user.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy");
+            var displayName = string.IsNullOrWhiteSpace(user.UserName) ? user.Email ?? "" : user.UserName;
+
+            sheet.Cell(row, 1).Value = displayName;
+            sheet.Cell(row, 2).Value = user.Email ?? string.Empty;
+            sheet.Cell(row, 3).Value = roleLabel;
+            sheet.Cell(row, 4).Value = joinedDate;
+            sheet.Cell(row, 5).Value = status;
+            sheet.Cell(row, 6).Value = user.PhoneNumber ?? string.Empty;
+            sheet.Cell(row, 7).Value = user.Address ?? string.Empty;
+            row++;
+        }
+
+        sheet.Columns().AdjustToContents();
+
+        await using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        var fileName = $"users-report-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
+        return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    }
+
+    public async Task<IActionResult> EditUser(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return NotFound();
+        }
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var model = new EditUserViewModel
+        {
+            Id = user.Id,
+            Email = user.Email ?? string.Empty,
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber,
+            Address = user.Address,
+            Role = roles.FirstOrDefault() ?? "User"
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditUser(EditUserViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await _userManager.FindByIdAsync(model.Id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        if (!string.Equals(user.Email, model.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var setEmailResult = await _userManager.SetEmailAsync(user, model.Email);
+            if (!setEmailResult.Succeeded)
+            {
+                foreach (var error in setEmailResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return View(model);
+            }
+
+            var setUserNameResult = await _userManager.SetUserNameAsync(user, model.Email);
+            if (!setUserNameResult.Succeeded)
+            {
+                foreach (var error in setUserNameResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return View(model);
+            }
+        }
+
+        user.FullName = model.FullName;
+        user.PhoneNumber = model.PhoneNumber;
+        user.Address = model.Address;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            foreach (var error in updateResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.NewPassword))
+        {
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetResult = await _userManager.ResetPasswordAsync(user, resetToken, model.NewPassword);
+            if (!resetResult.Succeeded)
+            {
+                foreach (var error in resetResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return View(model);
+            }
+        }
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        var targetRole = string.IsNullOrWhiteSpace(model.Role) ? "User" : model.Role;
+        if (!currentRoles.Contains(targetRole))
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                foreach (var error in removeResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return View(model);
+            }
+
+            var addResult = await _userManager.AddToRoleAsync(user, targetRole);
+            if (!addResult.Succeeded)
+            {
+                foreach (var error in addResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+
+                return View(model);
+            }
+        }
+
+        return RedirectToAction(nameof(Users));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUser(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return NotFound();
+        }
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        await _userManager.DeleteAsync(user);
+        return RedirectToAction(nameof(Users));
+    }
+
+    public IActionResult CreateUser()
+    {
+        var model = new CreateUserViewModel
+        {
+            Role = "User"
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateUser(CreateUserViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = model.Email,
+            Email = model.Email,
+            FullName = model.FullName,
+            PhoneNumber = model.PhoneNumber,
+            Address = model.Address,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var createResult = await _userManager.CreateAsync(user, model.Password);
+        if (!createResult.Succeeded)
+        {
+            foreach (var error in createResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        var role = string.IsNullOrWhiteSpace(model.Role) ? "User" : model.Role;
+        var roleResult = await _userManager.AddToRoleAsync(user, role);
+        if (!roleResult.Succeeded)
+        {
+            foreach (var error in roleResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+
+        return RedirectToAction(nameof(Users));
     }
 
     private static string GetInitials(string value)

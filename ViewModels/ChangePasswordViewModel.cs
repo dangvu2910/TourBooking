@@ -11,6 +11,7 @@ public class ChangePasswordViewModel
 
     [Required(ErrorMessage = "Vui lòng nhập mật khẩu mới.")]
     [DataType(DataType.Password)]
+    [RegularExpression("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{6,}$", ErrorMessage = "Mật khẩu phải có chữ hoa, chữ thường, số và ký tự đặc biệt.")]
     [Display(Name = "Mật khẩu mới")]
     public string NewPassword { get; set; } = string.Empty;
 

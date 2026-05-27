@@ -12,8 +12,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         options.Password.RequiredLength = 6;
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
@@ -88,7 +88,8 @@ static async Task EnsureRolesAndAdminAsync(
         {
             UserName = adminEmail,
             Email = adminEmail,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var createResult = await userManager.CreateAsync(adminUser, adminPassword);

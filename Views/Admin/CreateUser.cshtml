@@ -1,0 +1,87 @@
+@model Tourbooking.ViewModels.CreateUserViewModel
+
+@{
+    ViewData["Title"] = "Thêm người dùng";
+    Layout = "_AdminLayout";
+}
+
+<section class="dashboard-hero">
+    <div>
+        <p class="eyebrow">Hệ thống quản trị</p>
+        <h1>Thêm người dùng mới</h1>
+    </div>
+</section>
+
+<section class="panel-card">
+    <form asp-action="CreateUser" method="post" class="admin-form">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+        <div class="admin-form-grid">
+            <label>
+                <span>Họ và tên</span>
+                <input asp-for="FullName" type="text" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Email</span>
+                <input asp-for="Email" type="email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Số điện thoại</span>
+                <input asp-for="PhoneNumber" type="text" />
+                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Địa chỉ</span>
+                <input asp-for="Address" type="text" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Mật khẩu</span>
+                <div class="password-wrap">
+                    <input asp-for="Password" type="password" id="create-user-password" />
+                    <button type="button" class="password-toggle" id="create-user-toggle" aria-label="Hiện mật khẩu" aria-pressed="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6-10-6-10-6Z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Vai trò</span>
+                <select asp-for="Role">
+                    <option value="User">Người dùng</option>
+                    <option value="Admin">Quản trị</option>
+                </select>
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </label>
+        </div>
+
+        <div class="admin-form-actions">
+            <a class="ghost-action" asp-action="Users">Hủy</a>
+            <button type="submit" class="primary-action">Tạo người dùng</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        const createToggle = document.getElementById('create-user-toggle');
+        const createPassword = document.getElementById('create-user-password');
+
+        if (createToggle && createPassword) {
+            createToggle.addEventListener('click', () => {
+                const show = createPassword.type === 'password';
+                createPassword.type = show ? 'text' : 'password';
+                createToggle.setAttribute('aria-pressed', show);
+                createToggle.classList.toggle('is-on', show);
+                createPassword.focus();
+            });
+        }
+    </script>
+}

@@ -83,6 +83,7 @@ body {
     color: #ffffff;
     font-weight: 700;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .cta-button {
@@ -97,9 +98,10 @@ body {
 }
 
 .admin-footer-links {
+    margin-top: auto;
     display: grid;
     gap: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
 }
 
 .admin-footer-links a {
@@ -270,6 +272,130 @@ body {
     color: var(--ink-500);
 }
 
+.admin-form {
+    display: grid;
+    gap: 18px;
+}
+
+.admin-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-form label {
+    display: grid;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--ink-700);
+}
+
+.admin-form input,
+.admin-form select {
+    border: 1px solid var(--ink-200);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    background: #ffffff;
+}
+
+.password-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-wrap input {
+    width: 100%;
+    padding-right: 42px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--ink-500);
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.password-toggle svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.6;
+}
+
+.password-toggle.is-on {
+    color: var(--ocean);
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid var(--ocean);
+    outline-offset: 2px;
+}
+
+.admin-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--ink-700);
+}
+
+.admin-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
+.admin-form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.admin-form-actions .ghost-action {
+    border: 1px solid var(--ink-200);
+    background: #ffffff;
+    color: var(--ink-700);
+    border-radius: 999px;
+    padding: 10px 18px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.admin-form-actions .primary-action {
+    padding: 10px 18px;
+}
+
+.text-danger {
+    color: #ef4444;
+}
+
+.admin-form .field-validation-error,
+.admin-form .field-validation-valid {
+    display: block;
+    min-height: 18px;
+    line-height: 1.2;
+}
+
+@media (max-width: 900px) {
+    .admin-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-form-actions {
+        justify-content: stretch;
+        flex-direction: column;
+    }
+}
+
 .hero-actions {
     display: inline-flex;
     gap: 10px;
@@ -409,6 +535,32 @@ body {
     cursor: pointer;
 }
 
+.pager .page-btn {
+    border: 1px solid var(--ink-200);
+    background: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    color: var(--ink-900);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+}
+
+.pager .page-btn.is-active {
+    background: var(--ocean);
+    color: #ffffff;
+    border-color: var(--ocean);
+    font-weight: 700;
+}
+
+.pager .page-btn.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .pager button.is-active {
     background: var(--ocean);
     color: #ffffff;
@@ -497,6 +649,7 @@ body {
 .action-buttons {
     display: inline-flex;
     gap: 8px;
+    align-items: center;
 }
 
 .action-buttons a {
@@ -509,6 +662,33 @@ body {
     color: var(--ink-700);
     text-decoration: none;
     font-size: 0.85rem;
+}
+
+.action-buttons button {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    border: 1px solid var(--ink-200);
+    background: #ffffff;
+    color: var(--ink-700);
+    display: grid;
+    place-items: center;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.action-buttons .is-danger {
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #ef4444;
+}
+
+.action-buttons .is-danger:hover {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.inline-form {
+    display: inline-flex;
+    margin: 0;
 }
 
 .action-buttons a:hover {

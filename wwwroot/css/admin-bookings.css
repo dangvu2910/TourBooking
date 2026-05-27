@@ -87,9 +87,10 @@ body {
 }
 
 .admin-footer-links {
+    margin-top: auto;
     display: grid;
     gap: 8px;
-    font-size: 0.85rem;
+    font-size: 1rem;
 }
 
 .admin-footer-links a {
@@ -193,6 +194,7 @@ body {
     color: #ffffff;
     font-weight: 700;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .stat-grid {

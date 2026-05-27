@@ -9,10 +9,11 @@ public class ProfileViewModel
 
     [Required(ErrorMessage = "Vui lòng nhập email.")]
     [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+    [RegularExpression("^[a-zA-Z0-9._%+-]+@gmail\\.com$", ErrorMessage = "Email phải có dạng xxx@gmail.com.")]
     [Display(Name = "Email liên hệ")]
     public string Email { get; set; } = string.Empty;
 
-    [Phone(ErrorMessage = "Số điện thoại không hợp lệ.")]
+    [RegularExpression("^\\d{10}$", ErrorMessage = "Số điện thoại phải đủ 10 số.")]
     [Display(Name = "Số điện thoại")]
     public string? PhoneNumber { get; set; }
 
