@@ -37,15 +37,15 @@
                 <label class="control-label">Hình ảnh hiện tại</label>
                 @if (!string.IsNullOrEmpty(Model.ImageUrl))
                 {
-                    @:<div style="margin-bottom: 10px;">
-                    @:<img src="@Model.ImageUrl" alt="Hình ảnh hiện tại" style="max-width: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
-                    @:</div>
+                    <div style="margin-bottom: 10px;">
+                        <img src="@Model.ImageUrl" alt="Hình ảnh hiện tại" style="max-width: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+                    </div>
                 }
             </div>
             <div class="form-group">
                 <label class="control-label">Thay đổi hình ảnh</label>
                 <input type="file" id="imageFile" name="imageFile" class="form-control" accept="image/*" />
-                <small class="form-text text-white">Để trống nếu không muốn thay đổi hình ảnh</small>
+                <small class="form-text text-muted">Để trống nếu không muốn thay đổi hình ảnh</small>
             </div>
             <div class="form-group">
                 <label class="control-label">Xem trước hình ảnh mới</label>
