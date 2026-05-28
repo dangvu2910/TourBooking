@@ -291,12 +291,17 @@ body {
 }
 
 .admin-form input,
-.admin-form select {
+.admin-form select,
+.admin-form textarea {
     border: 1px solid var(--ink-200);
     border-radius: 12px;
     padding: 10px 12px;
     font-size: 0.95rem;
     background: #ffffff;
+}
+
+.admin-form textarea {
+    resize: vertical;
 }
 
 .password-wrap {

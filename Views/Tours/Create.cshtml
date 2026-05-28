@@ -79,18 +79,37 @@
         const priceInput = document.querySelector('.price-input');
         const vndFormatter = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 });
 
-        const formatPriceInput = () => {
-            if (!priceInput) {
-                return;
-            }
-
-            const digits = priceInput.value.replace(/\D/g, '');
-            priceInput.value = digits ? vndFormatter.format(Number(digits)) : '';
+        const normalizePriceValue = (value) => value.replace(/\D/g, '');
+        const formatPriceValue = (value) => {
+            const digits = normalizePriceValue(value);
+            return digits ? vndFormatter.format(Number(digits)) : '';
         };
 
         if (priceInput) {
-            priceInput.addEventListener('blur', formatPriceInput);
-            formatPriceInput();
+            const form = priceInput.closest('form');
+
+            priceInput.addEventListener('focus', () => {
+                priceInput.value = normalizePriceValue(priceInput.value);
+            });
+
+            priceInput.addEventListener('blur', () => {
+                priceInput.value = formatPriceValue(priceInput.value);
+            });
+
+            if (form) {
+                form.addEventListener('submit', () => {
+                    priceInput.value = normalizePriceValue(priceInput.value);
+                });
+            }
+
+            priceInput.value = formatPriceValue(priceInput.value);
+        }
+
+        if (window.jQuery && window.jQuery.validator) {
+            window.jQuery.validator.methods.number = function (value, element) {
+                const raw = normalizePriceValue(value);
+                return this.optional(element) || /^\d+$/.test(raw);
+            };
         }
     </script>
 }

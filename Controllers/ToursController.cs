@@ -121,7 +121,7 @@ namespace Tourbooking.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TourId,Name,Location,Price,Description,CategoryId")] Tour tour, IFormFile imageFile)
+        public async Task<IActionResult> Create([Bind("TourId,Name,Location,Price,Description,CategoryId")] Tour tour, IFormFile? imageFile)
         {
             TryNormalizePriceFromRequest(tour);
 
@@ -156,7 +156,7 @@ namespace Tourbooking.Controllers
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("imageFile", "Lỗi: " + ex.Message);
+                    ModelState.AddModelError(string.Empty, "Lỗi: " + ex.Message);
                 }
             }
             return View(tour);
@@ -183,7 +183,7 @@ namespace Tourbooking.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TourId,Name,Location,Price,Description,ImageUrl,CategoryId")] Tour tour, IFormFile imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("TourId,Name,Location,Price,Description,CategoryId")] Tour tour, IFormFile? imageFile)
         {
             TryNormalizePriceFromRequest(tour);
 
@@ -196,16 +196,17 @@ namespace Tourbooking.Controllers
             {
                 try
                 {
-                    var existingTour = await _context.Tours.AsNoTracking().FirstOrDefaultAsync(t => t.TourId == id);
+                    var existingTour = await _context.Tours.FirstOrDefaultAsync(t => t.TourId == id);
                     if (existingTour == null)
                     {
                         return NotFound();
                     }
 
-                    if (string.IsNullOrWhiteSpace(tour.ImageUrl))
-                    {
-                        tour.ImageUrl = existingTour.ImageUrl;
-                    }
+                    existingTour.Name = tour.Name;
+                    existingTour.Location = tour.Location;
+                    existingTour.Price = tour.Price;
+                    existingTour.Description = tour.Description;
+                    existingTour.CategoryId = tour.CategoryId;
 
                     if (imageFile != null && imageFile.Length > 0)
                     {
@@ -233,12 +234,11 @@ namespace Tourbooking.Controllers
                             await imageFile.CopyToAsync(fileStream);
                         }
 
-                        tour.ImageUrl = "/images/" + uniqueFileName;
+                        existingTour.ImageUrl = "/images/" + uniqueFileName;
                     }
 
-                    _context.Update(tour);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Tours", "Admin");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -308,13 +308,15 @@ namespace Tourbooking.Controllers
                 return;
             }
 
-            var styles = NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands;
-
-            if (decimal.TryParse(rawPrice, styles, CultureInfo.CurrentCulture, out var currentCulturePrice)
-                || decimal.TryParse(rawPrice, styles, new CultureInfo("vi-VN"), out currentCulturePrice)
-                || decimal.TryParse(rawPrice, styles, CultureInfo.InvariantCulture, out currentCulturePrice))
+            var digitsOnly = new string(rawPrice.Where(char.IsDigit).ToArray());
+            if (string.IsNullOrWhiteSpace(digitsOnly))
             {
-                tour.Price = currentCulturePrice;
+                return;
+            }
+
+            if (decimal.TryParse(digitsOnly, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedPrice))
+            {
+                tour.Price = parsedPrice;
                 ModelState.Remove(nameof(Tour.Price));
             }
         }
