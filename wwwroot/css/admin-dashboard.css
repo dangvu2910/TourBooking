@@ -444,6 +444,22 @@ body {
 .table-actions {
     display: inline-flex;
     gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.table-actions .filter-inline {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.table-actions select {
+    border: 1px solid var(--ink-200);
+    background: var(--snow);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
 }
 
 .table-actions button {

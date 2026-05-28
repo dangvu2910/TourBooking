@@ -150,8 +150,23 @@ namespace Tourbooking.Controllers
                         tour.ImageUrl = "/images/" + uniqueFileName;
                     }
 
-                    _context.Add(tour);
-                    await _context.SaveChangesAsync();
+                    tour.TourId = await GetNextTourIdAsync();
+
+                    await using var transaction = await _context.Database.BeginTransactionAsync();
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Tours ON");
+
+                    try
+                    {
+                        _context.Add(tour);
+                        await _context.SaveChangesAsync();
+
+                        await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Tours OFF");
+                        await transaction.CommitAsync();
+                    }
+                    finally
+                    {
+                        await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Tours OFF");
+                    }
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -285,13 +300,33 @@ namespace Tourbooking.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var tour = await _context.Tours.FindAsync(id);
-            if (tour != null)
+            if (tour == null)
             {
-                _context.Tours.Remove(tour);
+                return RedirectToAction("Tours", "Admin");
             }
 
+            var bookings = await _context.Bookings
+                .Where(b => b.TourId == id)
+                .ToListAsync();
+
+            if (bookings.Count > 0)
+            {
+                var bookingIds = bookings.Select(b => b.BookingId).ToList();
+                var payments = await _context.Payments
+                    .Where(p => bookingIds.Contains(p.BookingId))
+                    .ToListAsync();
+
+                if (payments.Count > 0)
+                {
+                    _context.Payments.RemoveRange(payments);
+                }
+
+                _context.Bookings.RemoveRange(bookings);
+            }
+
+            _context.Tours.Remove(tour);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Tours", "Admin");
         }
 
         private bool TourExists(int id)
@@ -361,6 +396,35 @@ namespace Tourbooking.Controllers
             }
 
             return keywords.ToList();
+        }
+
+        private async Task<int> GetNextTourIdAsync()
+        {
+            var ids = await _context.Tours
+                .AsNoTracking()
+                .Select(t => t.TourId)
+                .OrderBy(id => id)
+                .ToListAsync();
+
+            if (ids.Count == 0)
+            {
+                return 1;
+            }
+
+            var expected = 1;
+            foreach (var id in ids)
+            {
+                if (id > expected)
+                {
+                    return expected;
+                }
+                if (id == expected)
+                {
+                    expected++;
+                }
+            }
+
+            return expected;
         }
     }
 }

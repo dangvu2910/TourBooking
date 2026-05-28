@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using ClosedXML.Excel;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -56,9 +57,20 @@ public class AdminController : Controller
         return View(model);
     }
 
-    public async Task<IActionResult> Tours()
+    public async Task<IActionResult> Tours(string? region)
     {
-        var tours = await _context.Tours.AsNoTracking().ToListAsync();
+        var toursQuery = _context.Tours.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(region))
+        {
+            var keywords = GetRegionKeywords(new[] { region });
+            if (keywords.Count > 0)
+            {
+                toursQuery = toursQuery.Where(t => keywords.Any(k => t.Location.Contains(k)));
+            }
+        }
+
+        var tours = await toursQuery.ToListAsync();
         var destinations = tours
             .Select(t => t.Location)
             .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -70,6 +82,8 @@ public class AdminController : Controller
             TotalTours = tours.Count,
             Destinations = destinations,
             AverageBookingRate = 88,
+            Regions = new List<string> { "Miền Bắc", "Miền Trung", "Miền Nam" },
+            SelectedRegion = region,
             Tours = tours.Select(t => new AdminTourRow
             {
                 TourId = t.TourId,
@@ -82,6 +96,54 @@ public class AdminController : Controller
         };
 
         return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportToursExcel(string? region)
+    {
+        var toursQuery = _context.Tours.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(region))
+        {
+            var keywords = GetRegionKeywords(new[] { region });
+            if (keywords.Count > 0)
+            {
+                toursQuery = toursQuery.Where(t => keywords.Any(k => t.Location.Contains(k)));
+            }
+        }
+
+        var tours = await toursQuery.OrderBy(t => t.TourId).ToListAsync();
+
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Tours");
+        sheet.Cell(1, 1).Value = "TourId";
+        sheet.Cell(1, 2).Value = "Ten tour";
+        sheet.Cell(1, 3).Value = "Dia diem";
+        sheet.Cell(1, 4).Value = "Gia";
+        sheet.Cell(1, 5).Value = "Trang thai";
+        sheet.Cell(1, 6).Value = "Anh";
+
+        var row = 2;
+        foreach (var tour in tours)
+        {
+            var status = "Da dang";
+            sheet.Cell(row, 1).Value = tour.TourId;
+            sheet.Cell(row, 2).Value = tour.Name;
+            sheet.Cell(row, 3).Value = tour.Location;
+            sheet.Cell(row, 4).Value = tour.Price;
+            sheet.Cell(row, 5).Value = status;
+            sheet.Cell(row, 6).Value = tour.ImageUrl ?? string.Empty;
+            row++;
+        }
+
+        sheet.Columns().AdjustToContents();
+
+        await using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        var fileName = $"tours-report-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
+        return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
     public IActionResult Bookings()
@@ -436,5 +498,53 @@ public class AdminController : Controller
         var first = parts[0][0];
         var last = parts[^1][0];
         return string.Concat(first, last).ToUpperInvariant();
+    }
+
+    private static List<string> GetRegionKeywords(IEnumerable<string> regions)
+    {
+        var regionKeywords = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Miền Bắc"] = new[]
+            {
+                "Hà Nội", "Ha Noi", "Hải Phòng", "Hai Phong", "Quảng Ninh", "Quang Ninh",
+                "Lào Cai", "Lao Cai", "Sa Pa", "Sapa", "Hà Giang", "Ha Giang",
+                "Sơn La", "Son La", "Mộc Châu", "Moc Chau", "Ninh Bình", "Ninh Binh"
+            },
+            ["Miền Trung"] = new[]
+            {
+                "Đà Nẵng", "Da Nang", "Quảng Nam", "Quang Nam", "Hội An", "Hoi An",
+                "Huế", "Hue", "Thừa Thiên", "Bình Định", "Binh Dinh", "Quy Nhơn", "Quy Nhon",
+                "Phú Yên", "Phu Yen", "Khánh Hòa", "Khanh Hoa", "Nha Trang",
+                "Đắk Lắk", "Dak Lak", "Lâm Đồng", "Lam Dong", "Đà Lạt", "Da Lat",
+                "Quảng Ngãi", "Quang Ngai"
+            },
+            ["Miền Nam"] = new[]
+            {
+                "TP. Hồ Chí Minh", "TP Ho Chi Minh", "Hồ Chí Minh", "Ho Chi Minh", "Sài Gòn", "Sai Gon",
+                "Vũng Tàu", "Vung Tau", "Đồng Nai", "Dong Nai", "Cần Thơ", "Can Tho",
+                "Phú Quốc", "Phu Quoc", "Bình Dương", "Binh Duong", "Tây Ninh", "Tay Ninh",
+                "Long An", "Bến Tre", "Ben Tre", "Tiền Giang", "Tien Giang", "Kiên Giang", "Kien Giang"
+            }
+        };
+
+        var keywords = new List<string>();
+        foreach (var region in regions)
+        {
+            if (string.IsNullOrWhiteSpace(region))
+            {
+                continue;
+            }
+
+            if (regionKeywords.TryGetValue(region, out var regionItems))
+            {
+                keywords.AddRange(regionItems);
+            }
+            else
+            {
+                keywords.Add(region);
+            }
+        }
+
+        return keywords.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 }

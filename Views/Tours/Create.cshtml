@@ -2,63 +2,66 @@
 
 @{
     ViewData["Title"] = "Tạo tour";
+    Layout = "_AdminLayout";
 }
 
-<h1>Tạo tour</h1>
-
-<h4>Thông tin tour</h4>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create" enctype="multipart/form-data">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Location" class="control-label"></label>
-                <input asp-for="Location" class="form-control" />
-                <span asp-validation-for="Location" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Price" class="control-label"></label>
-                <input asp-for="Price" class="form-control price-input" type="text" inputmode="numeric" autocomplete="off" />
-                <span asp-validation-for="Price" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Chọn hình ảnh</label>
-                <input type="file" id="imageFile" name="imageFile" class="form-control" accept="image/*" />
-                <small class="form-text text-muted">Chọn file hình ảnh (JPG, PNG, GIF...)</small>
-            </div>
-            <div class="form-group">
-                <label class="control-label">Xem trước hình ảnh</label>
-                <div id="imagePreview" style="margin-top: 10px;">
-                    <img id="previewImage" src="" alt="Xem trước" style="max-width: 300px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
-                </div>
-            </div>
-            <input type="hidden" asp-for="ImageUrl" id="imageUrlInput" />
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <input asp-for="CategoryId" class="form-control" />
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Tạo tour" class="btn btn-primary" />
-            </div>
-        </form>
+<section class="dashboard-hero">
+    <div>
+        <p class="eyebrow">Hệ thống quản trị</p>
+        <h1>Tạo tour mới</h1>
     </div>
-</div>
+</section>
 
-<div>
-    <a asp-action="Index">Quay lại danh sách</a>
-</div>
+<section class="panel-card">
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="admin-form">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="All" class="text-danger" role="alert"></div>
+
+        <div class="admin-form-grid">
+            <label>
+                <span>Tên tour</span>
+                <input asp-for="Name" type="text" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Địa điểm</span>
+                <input asp-for="Location" type="text" />
+                <span asp-validation-for="Location" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Giá</span>
+                <input asp-for="Price" class="price-input" type="text" inputmode="numeric" autocomplete="off" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </label>
+            <label>
+                <span>Danh mục</span>
+                <input asp-for="CategoryId" type="text" />
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </label>
+            <label style="grid-column: 1 / -1;">
+                <span>Mô tả</span>
+                <textarea asp-for="Description" rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </label>
+            <label style="grid-column: 1 / -1;">
+                <span>Chọn hình ảnh</span>
+                <input type="file" id="imageFile" name="imageFile" accept="image/*" />
+                <span class="table-muted">Chọn file hình ảnh (JPG, PNG, GIF...)</span>
+            </label>
+            <label style="grid-column: 1 / -1;">
+                <span>Xem trước hình ảnh</span>
+                <div id="imagePreview" style="margin-top: 8px;">
+                    <img id="previewImage" src="" alt="Xem trước" style="max-width: 300px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 12px;" />
+                </div>
+            </label>
+        </div>
+
+        <div class="admin-form-actions">
+            <a class="ghost-action" asp-controller="Admin" asp-action="Tours">Hủy</a>
+            <button type="submit" class="primary-action">Tạo tour</button>
+        </div>
+    </form>
+</section>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
