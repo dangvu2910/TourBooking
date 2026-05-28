@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Tourbooking.Models;
+using Tourbooking.ViewModels;
 
 namespace Tourbooking.Controllers
 {
@@ -33,6 +34,12 @@ namespace Tourbooking.Controllers
             const int pageSize = 6;
 
             var toursQuery = _context.Tours.AsQueryable();
+            toursQuery = toursQuery.Where(t =>
+                !(
+                    (t.Name != null && (t.Name.Contains("Đà Lạt") || t.Name.Contains("Da Lat") || t.Name.Contains("Dalat")))
+                    ||
+                    (t.Location != null && (t.Location.Contains("Đà Lạt") || t.Location.Contains("Da Lat") || t.Location.Contains("Dalat")))
+                ));
 
             var selectedRegions = (regions ?? Array.Empty<string>())
                 .Where(r => !string.IsNullOrWhiteSpace(r))
@@ -106,6 +113,28 @@ namespace Tourbooking.Controllers
             {
                 return NotFound();
             }
+
+            if (IsDalatTour(tour.Name, tour.Location))
+            {
+                return NotFound();
+            }
+
+            var publicReviews = await _context.TourReviews
+                .Include(r => r.User)
+                .Where(r => r.TourId == tour.TourId)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(8)
+                .Select(r => new PublicTourReviewRow(
+                    !string.IsNullOrWhiteSpace(r.User!.FullName) ? r.User!.FullName! : (r.User!.UserName ?? "Khách du lịch"),
+                    r.Rating,
+                    r.Title,
+                    r.Content,
+                    r.CreatedAt))
+                .ToListAsync();
+
+            ViewData["PublicReviews"] = publicReviews;
+            ViewData["ReviewCount"] = publicReviews.Count;
+            ViewData["AverageRating"] = publicReviews.Count > 0 ? publicReviews.Average(r => r.Rating) : 0d;
 
             return View(tour);
         }
@@ -396,6 +425,23 @@ namespace Tourbooking.Controllers
             }
 
             return keywords.ToList();
+        }
+
+        private static bool IsDalatTour(string? name, string? location)
+        {
+            return ContainsDalat(name) || ContainsDalat(location);
+        }
+
+        private static bool ContainsDalat(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.Contains("Đà Lạt", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("Da Lat", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("Dalat", StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task<int> GetNextTourIdAsync()

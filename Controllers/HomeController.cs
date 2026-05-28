@@ -21,7 +21,14 @@ namespace Tourbooking.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var tours = await _context.Tours.AsNoTracking().ToListAsync();
+            var tours = await _context.Tours.AsNoTracking()
+                .Where(t =>
+                    !(
+                        (t.Name != null && (t.Name.Contains("Đà Lạt") || t.Name.Contains("Da Lat") || t.Name.Contains("Dalat")))
+                        ||
+                        (t.Location != null && (t.Location.Contains("Đà Lạt") || t.Location.Contains("Da Lat") || t.Location.Contains("Dalat")))
+                    ))
+                .ToListAsync();
 
             var heroTours = tours
                 .Where(t => !string.IsNullOrWhiteSpace(t.ImageUrl))
@@ -60,7 +67,7 @@ namespace Tourbooking.Controllers
                     ? "Giam den 30% cho tour bien dao khi dat som."
                     : "Mien phi tre nho duoi 5 tuoi cho cac tour cuoi tuan.",
                 Cta = index == 0 ? "Dat ngay" : "Lien he tu van",
-                ImageUrl = tour.ImageUrl ?? string.Empty,
+                ImageUrl = NormalizeImageUrl(tour.ImageUrl) ?? string.Empty,
                 TourId = tour.TourId
             }).ToList();
 
@@ -91,7 +98,7 @@ namespace Tourbooking.Controllers
             }
 
             var tour = await _context.Tours.AsNoTracking().FirstOrDefaultAsync(t => t.TourId == tourId.Value);
-            if (tour == null)
+            if (tour == null || IsDalatTour(tour.Name, tour.Location))
             {
                 TempData["BookingMessage"] = "Tour không tồn tại hoặc đã bị gỡ.";
                 return RedirectToAction("Index", "Tours");
@@ -103,7 +110,7 @@ namespace Tourbooking.Controllers
                 TourId = tour.TourId,
                 TourName = tour.Name,
                 TourLocation = tour.Location,
-                TourImageUrl = tour.ImageUrl,
+                TourImageUrl = NormalizeImageUrl(tour.ImageUrl),
                 TourPrice = tour.Price,
                 FullName = user?.FullName ?? string.Empty,
                 Email = user?.Email ?? string.Empty,
@@ -141,7 +148,7 @@ namespace Tourbooking.Controllers
             {
                 model.TourName = tour.Name;
                 model.TourLocation = tour.Location;
-                model.TourImageUrl = tour.ImageUrl;
+                model.TourImageUrl = NormalizeImageUrl(tour.ImageUrl);
                 model.TourPrice = tour.Price;
                 return View(model);
             }
@@ -191,6 +198,55 @@ namespace Tourbooking.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        private static string? NormalizeImageUrl(string? imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+            {
+                return null;
+            }
+
+            if (imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+                || imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                || imageUrl.StartsWith("~", StringComparison.OrdinalIgnoreCase))
+            {
+                return imageUrl;
+            }
+
+            if (imageUrl.StartsWith("wwwroot/", StringComparison.OrdinalIgnoreCase))
+            {
+                return "/" + imageUrl.Substring("wwwroot/".Length).TrimStart('/');
+            }
+
+            if (imageUrl.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+            {
+                return imageUrl.Replace("\\", "/");
+            }
+
+            if (imageUrl.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+            {
+                return "/" + imageUrl.TrimStart('/');
+            }
+
+            return "/images/" + imageUrl.TrimStart('/');
+        }
+
+        private static bool IsDalatTour(string? name, string? location)
+        {
+            return ContainsDalat(name) || ContainsDalat(location);
+        }
+
+        private static bool ContainsDalat(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.Contains("Đà Lạt", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("Da Lat", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("Dalat", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

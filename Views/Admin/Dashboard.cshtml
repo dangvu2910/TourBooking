@@ -104,7 +104,7 @@
                     <div class="tour-image">
                         @if (!string.IsNullOrWhiteSpace(tour.ImageUrl))
                         {
-                            <img src="@tour.ImageUrl" alt="@tour.Name" />
+                            <img src="@Url.Content(tour.ImageUrl)" alt="@tour.Name" />
                         }
                         else
                         {

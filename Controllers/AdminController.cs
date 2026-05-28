@@ -41,7 +41,7 @@ public class AdminController : Controller
                 {
                     TourId = t.TourId,
                     Name = t.Name,
-                    ImageUrl = t.ImageUrl ?? string.Empty,
+                    ImageUrl = NormalizeImageUrl(t.ImageUrl) ?? string.Empty,
                     Location = t.Location,
                     Metric = t.Price.ToString("C0", VnCulture)
                 })
@@ -89,7 +89,7 @@ public class AdminController : Controller
                 TourId = t.TourId,
                 Name = t.Name,
                 Location = t.Location,
-                ImageUrl = t.ImageUrl ?? string.Empty,
+                ImageUrl = NormalizeImageUrl(t.ImageUrl) ?? string.Empty,
                 Price = t.Price.ToString("C0", VnCulture),
                 Status = "Published"
             }).ToList()
@@ -546,5 +546,37 @@ public class AdminController : Controller
         }
 
         return keywords.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private static string? NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+        {
+            return null;
+        }
+
+        if (imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.StartsWith("~", StringComparison.OrdinalIgnoreCase))
+        {
+            return imageUrl;
+        }
+
+        if (imageUrl.StartsWith("wwwroot/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/" + imageUrl.Substring("wwwroot/".Length).TrimStart('/');
+        }
+
+        if (imageUrl.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+        {
+            return imageUrl.Replace("\\", "/");
+        }
+
+        if (imageUrl.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/" + imageUrl.TrimStart('/');
+        }
+
+        return "/images/" + imageUrl.TrimStart('/');
     }
 }

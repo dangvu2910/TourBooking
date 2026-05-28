@@ -82,7 +82,7 @@
                             <div class="tour-cell">
                                 @if (!string.IsNullOrWhiteSpace(tour.ImageUrl))
                                 {
-                                    <img class="tour-thumb" src="@tour.ImageUrl" alt="@tour.Name" />
+                                    <img class="tour-thumb" src="@Url.Content(tour.ImageUrl)" alt="@tour.Name" />
                                 }
                                 else
                                 {
