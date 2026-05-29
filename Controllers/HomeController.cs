@@ -22,12 +22,6 @@ namespace Tourbooking.Controllers
         public async Task<IActionResult> Index()
         {
             var tours = await _context.Tours.AsNoTracking()
-                .Where(t =>
-                    !(
-                        (t.Name != null && (t.Name.Contains("Đà Lạt") || t.Name.Contains("Da Lat") || t.Name.Contains("Dalat")))
-                        ||
-                        (t.Location != null && (t.Location.Contains("Đà Lạt") || t.Location.Contains("Da Lat") || t.Location.Contains("Dalat")))
-                    ))
                 .ToListAsync();
 
             var heroTours = tours
@@ -98,7 +92,7 @@ namespace Tourbooking.Controllers
             }
 
             var tour = await _context.Tours.AsNoTracking().FirstOrDefaultAsync(t => t.TourId == tourId.Value);
-            if (tour == null || IsDalatTour(tour.Name, tour.Location))
+            if (tour == null)
             {
                 TempData["BookingMessage"] = "Tour không tồn tại hoặc đã bị gỡ.";
                 return RedirectToAction("Index", "Tours");
