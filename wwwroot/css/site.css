@@ -49,6 +49,13 @@ body {
   justify-content: flex-end;
 }
 
+.navbar-contact { display: inline-flex; align-items: center; }
+.navbar-contact .btn { border-radius: 8px; padding: 6px 12px; font-weight: 600; }
+
+@media (max-width: 576px) {
+  .navbar-contact { display: none; }
+}
+
 .auth-pill {
   display: inline-flex;
   align-items: center;
@@ -90,7 +97,7 @@ body {
 
 .nav-link-pill.is-active {
   background-color: #e8f0ff;
-  color: #0d5bd8;
+  color: #0f172a;
   font-weight: 600;
 }
 
@@ -98,11 +105,17 @@ body {
   background-color: #f1f5ff;
 }
 
-@media (min-width: 576px) {
+@media (min-width: 992px) {
   .navbar-center {
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+  }
+}
+
+@media (min-width: 576px) and (max-width: 991.98px) {
+  .navbar-content .navbar-collapse {
+    justify-content: space-between !important;
   }
 }
 

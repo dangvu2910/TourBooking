@@ -187,25 +187,14 @@
                 }
                 else
                 {
-                    @for (var i = 0; i < 6; i++)
-                    {
-                        <a class="tour-card-link" asp-action="Details" asp-route-id="1">
-                            <article class="tour-card">
-                                <div class="tour-image">
-                                    <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
-                                </div>
-                                <div class="tour-info">
-                                    <h3><span class="tour-title">Tên tour @(i + 1)</span><span>★ 0.0</span></h3>
-                                    <p>Mô tả tour sẽ hiển thị tại đây.</p>
-                                    <div class="tour-price">
-                                        <small>BẮT ĐẦU TỪ</small>
-                                        <strong>@string.Format(vnd, "{0:C0}", 0)</strong>
-                                        <span class="tour-cta">→</span>
-                                    </div>
-                                </div>
-                            </article>
-                        </a>
-                    }
+                    <div class="no-results" style="padding:40px 24px; text-align:center;">
+                        <h3>Không có tour phù hợp với bộ lọc</h3>
+                        <p>Thử giảm khoảng giá hoặc liên hệ để biết thêm thông tin.</p>
+                        <div style="margin-top:16px; display:flex; gap:12px; justify-content:center;">
+                            <a class="btn-outline" href="@Url.Action("Index", "Tours")">Xóa bộ lọc</a>
+                            <a class="btn-primary" href="@Url.Action("Contact", "Home")">Liên hệ để biết giá</a>
+                        </div>
+                    </div>
                 }
             </div>
 

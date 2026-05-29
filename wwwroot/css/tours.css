@@ -304,3 +304,43 @@
         align-items: flex-start;
     }
 }
+
+/* No-results styles */
+.no-results {
+    background: #fff;
+    border: 1px solid #e6e9ef;
+    padding: 36px 28px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+    text-align: left;
+}
+.no-results h3 {
+    margin: 0 0 8px;
+    font-size: 1.6rem;
+    color: var(--tour-text);
+}
+.no-results p {
+    margin: 0 0 16px;
+    color: var(--tour-muted);
+}
+.no-results .actions {
+    display: flex;
+    gap: 12px;
+}
+.no-results .btn-outline {
+    border: 1px solid #d4d9e2;
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    color: #334155;
+}
+.no-results .btn-primary {
+    border: none;
+    background: var(--tour-primary);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+

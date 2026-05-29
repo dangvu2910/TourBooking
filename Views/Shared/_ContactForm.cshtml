@@ -1,0 +1,36 @@
+@model Tourbooking.ViewModels.ContactViewModel
+
+<div class="contact-card">
+    <div class="contact-card-inner">
+        <div class="contact-card-left">
+            <h3>Liên hệ nhanh</h3>
+            <p>Gửi nhu cầu để nhận lịch trình và báo giá phù hợp. Chúng tôi sẽ phản hồi trong vòng 24 giờ.</p>
+            <ul class="contact-features">
+                <li>✓ Tư vấn miễn phí</li>
+                <li>✓ Phản hồi nhanh trong 15 phút giờ hành chính</li>
+                <li>✓ Bảo mật thông tin 100%</li>
+            </ul>
+        </div>
+
+        <div class="contact-card-right">
+            <form asp-action="Contact" method="post" class="contact-form">
+                @Html.AntiForgeryToken()
+                <div class="form-row">
+                    <input asp-for="FullName" placeholder="Họ và tên*" />
+                    <input asp-for="PhoneNumber" placeholder="Số điện thoại" />
+                </div>
+                <div class="form-row">
+                    <input asp-for="Email" placeholder="Email*" />
+                    <input placeholder="Tiêu đề" name="Title" />
+                </div>
+                <div class="form-row">
+                    <textarea asp-for="Message" placeholder="Nội dung, nhu cầu, ngày dự kiến khởi hành..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <label class="consent"><input type="checkbox" required /> Tôi đồng ý với điều khoản và cho phép liên hệ tư vấn.</label>
+                    <button class="btn btn-dark" type="submit">Gửi yêu cầu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

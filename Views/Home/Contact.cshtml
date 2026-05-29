@@ -1,0 +1,28 @@
+@model Tourbooking.ViewModels.ContactViewModel
+
+@{
+    ViewData["Title"] = "Liên hệ tư vấn";
+}
+
+<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
+<div class="py-4 py-md-5">
+    <div class="section-header">
+        <div>
+            <p class="label">HỖ TRỢ</p>
+            <h2>Liên hệ tư vấn</h2>
+            <p class="text-muted mb-0">Nhập thông tin của bạn và chúng tôi sẽ liên hệ lại để tư vấn chi tiết.</p>
+        </div>
+    </div>
+
+    @if (TempData["ContactMessage"] is string msg && !string.IsNullOrWhiteSpace(msg))
+    {
+        <div class="alert alert-success">@msg</div>
+    }
+
+    @await Html.PartialAsync("_ContactForm", Model)
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -44,9 +44,6 @@
                                 <a class="nav-link text-dark nav-link-pill @(currentController == "Admin" && currentAction == "Dashboard" ? "is-active" : "")" asp-area="" asp-controller="Admin" asp-action="Dashboard">Quản trị</a>
                             </li>
                         }
-                        <li class="nav-item">
-                            <a class="nav-link text-dark nav-link-pill @(currentController == "Home" && currentAction == "Booking" ? "is-active" : "")" asp-area="" asp-controller="Home" asp-action="Booking">Đặt chỗ</a>
-                        </li>
                         @if (User?.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
@@ -89,6 +86,9 @@
                             </div>
                         }
                         </div>
+                    </div>
+                    <div class="navbar-contact ms-2">
+                        <a class="btn btn-dark btn-sm" asp-controller="Home" asp-action="Contact">Liên hệ tư vấn</a>
                     </div>
                 </div>
             </div>

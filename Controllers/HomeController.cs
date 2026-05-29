@@ -82,6 +82,26 @@ namespace Tourbooking.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Contact()
+        {
+            return View(new ContactViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Contact(ContactViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // For now we just show a confirmation message. Integration with email or storage can be added later.
+            TempData["ContactMessage"] = "Cảm ơn bạn đã liên hệ. Chúng tôi sẽ liên hệ lại sớm nhất có thể.";
+            return RedirectToAction("Contact");
+        }
+
         [Authorize]
         public async Task<IActionResult> Booking(int? tourId)
         {
