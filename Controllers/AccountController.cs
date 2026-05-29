@@ -317,8 +317,8 @@ namespace Tourbooking.Controllers
             var completedBookings = await _context.Bookings
                 .Include(b => b.Tour)
                 .Where(b => b.UserId == user.Id
-                    && b.TravelDate.Date < DateTime.Today
-                    && b.Status != "Cancelled")
+                    && b.Status != "Cancelled"
+                    && (b.TravelDate.Date < DateTime.Today || b.Status == "Confirmed"))
                 .OrderByDescending(b => b.TravelDate)
                 .ToListAsync();
 
@@ -332,6 +332,10 @@ namespace Tourbooking.Controllers
                 Reviews = completedBookings.Select(booking =>
                 {
                     var review = reviews.FirstOrDefault(r => r.BookingId == booking.BookingId);
+                    var canReview = review == null &&
+                        (string.Equals(booking.Status, "Confirmed", StringComparison.OrdinalIgnoreCase)
+                         || (booking.TravelDate.Date < DateTime.Today && !string.Equals(booking.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)));
+
                     return new AccountReviewRow(
                         booking.BookingId,
                         booking.TourId,
@@ -340,7 +344,7 @@ namespace Tourbooking.Controllers
                         ResolveTourImageUrl(booking.Tour?.ImageUrl, booking.Tour?.Location, booking.Tour?.Name),
                         booking.TravelDate,
                         booking.Status,
-                        review == null,
+                        canReview,
                         review != null,
                         review?.Rating,
                         review?.Title,
@@ -374,10 +378,11 @@ namespace Tourbooking.Controllers
             }
 
             var isCancelled = string.Equals(booking.Status, "Cancelled", StringComparison.OrdinalIgnoreCase);
-            var isCompleted = booking.TravelDate.Date < DateTime.Today && !isCancelled;
-            if (!isCompleted)
+            var isEligible = string.Equals(booking.Status, "Confirmed", StringComparison.OrdinalIgnoreCase)
+                             || (booking.TravelDate.Date < DateTime.Today && !isCancelled);
+            if (!isEligible)
             {
-                TempData["ReviewMessage"] = "Bạn chỉ có thể đánh giá các tour đã hoàn thành.";
+                TempData["ReviewMessage"] = "Bạn chỉ có thể đánh giá các tour đã hoàn thành hoặc đã được admin xác nhận.";
                 return RedirectToAction(nameof(Reviews));
             }
 
@@ -413,6 +418,65 @@ namespace Tourbooking.Controllers
 
             TempData["ReviewMessage"] = "Đã lưu đánh giá của bạn.";
             return RedirectToAction(nameof(Reviews));
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VoteReview(int reviewId, int value)
+        {
+            if (value != 1 && value != -1)
+            {
+                return BadRequest();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            var review = await _context.TourReviews.FirstOrDefaultAsync(r => r.ReviewId == reviewId);
+            if (review == null)
+            {
+                return NotFound();
+            }
+
+            if (string.Equals(review.UserId, user.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            var existing = await _context.TourReviewVotes.FirstOrDefaultAsync(v => v.ReviewId == reviewId && v.UserId == user.Id);
+            if (existing == null)
+            {
+                var vote = new TourReviewVote
+                {
+                    ReviewId = reviewId,
+                    UserId = user.Id,
+                    Value = value,
+                    CreatedAt = DateTime.UtcNow
+                };
+                _context.TourReviewVotes.Add(vote);
+            }
+            else if (existing.Value == value)
+            {
+                _context.TourReviewVotes.Remove(existing);
+            }
+            else
+            {
+                existing.Value = value;
+                existing.CreatedAt = DateTime.UtcNow;
+                _context.TourReviewVotes.Update(existing);
+            }
+
+            await _context.SaveChangesAsync();
+
+            var up = await _context.TourReviewVotes.CountAsync(v => v.ReviewId == reviewId && v.Value == 1);
+            var down = await _context.TourReviewVotes.CountAsync(v => v.ReviewId == reviewId && v.Value == -1);
+            var userVote = await _context.TourReviewVotes.Where(v => v.ReviewId == reviewId && v.UserId == user.Id).Select(v => (int?)v.Value).FirstOrDefaultAsync();
+
+            return Json(new { upvotes = up, downvotes = down, userVote });
         }
 
         private string? ResolveTourImageUrl(string? imageUrl, string? location = null, string? name = null)

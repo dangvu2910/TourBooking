@@ -182,6 +182,16 @@
                                 </div>
                                 <h4>@review.Title</h4>
                                 <p>@review.Content</p>
+                                <div class="public-review-actions">
+                                    <div class="review-votes" data-review-id="@review.ReviewId">
+                                        <button class="vote-btn upvote @(review.UserVote == 1 ? "voted" : "")" data-value="1">
+                                            👍 <span class="vote-count">@review.Upvotes</span>
+                                        </button>
+                                        <button class="vote-btn downvote @(review.UserVote == -1 ? "voted" : "")" data-value="-1">
+                                            👎 <span class="vote-count">@review.Downvotes</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </article>
                         }
                     </div>
@@ -237,3 +247,59 @@
         </aside>
     </section>
 </div>
+
+<form id="__antiForgeryForm">@Html.AntiForgeryToken()</form>
+
+@section Scripts {
+    <script>
+        (function(){
+            function getToken(){
+                var el = document.querySelector('#__antiForgeryForm input[name="__RequestVerificationToken"]');
+                return el ? el.value : '';
+            }
+
+            async function vote(reviewId, value, button){
+                var token = getToken();
+                var form = new FormData();
+                form.append('reviewId', reviewId);
+                form.append('value', value);
+                form.append('__RequestVerificationToken', token);
+
+                var res = await fetch('@Url.Action("VoteReview", "Account")', {
+                    method: 'POST',
+                    body: form,
+                    credentials: 'same-origin'
+                });
+
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        window.location = '@Url.Action("Login", "Account")';
+                        return;
+                    }
+                    return;
+                }
+
+                var data = await res.json();
+                var container = document.querySelector('.review-votes[data-review-id="' + reviewId + '"]');
+                if (!container) return;
+                container.querySelector('.upvote .vote-count').textContent = data.upvotes;
+                container.querySelector('.downvote .vote-count').textContent = data.downvotes;
+
+                // update button states
+                var upBtn = container.querySelector('.upvote');
+                var downBtn = container.querySelector('.downvote');
+                upBtn.classList.toggle('voted', data.userVote === 1);
+                downBtn.classList.toggle('voted', data.userVote === -1);
+            }
+
+            document.addEventListener('click', function(e){
+                var btn = e.target.closest('.vote-btn');
+                if (!btn) return;
+                var container = btn.closest('.review-votes');
+                var reviewId = container.getAttribute('data-review-id');
+                var value = btn.getAttribute('data-value');
+                vote(reviewId, value, btn).catch(()=>{});
+            });
+        })();
+    </script>
+}

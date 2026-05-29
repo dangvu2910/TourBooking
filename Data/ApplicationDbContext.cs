@@ -13,6 +13,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Booking> Bookings { get; set; }
     public DbSet<Payment> Payments { get; set; }
     public DbSet<TourReview> TourReviews { get; set; }
+    public DbSet<TourReviewVote> TourReviewVotes { get; set; }
     
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -60,6 +61,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(r => r.User)
             .WithMany()
             .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<TourReviewVote>()
+            .HasIndex(v => new { v.ReviewId, v.UserId })
+            .IsUnique();
+
+        builder.Entity<TourReviewVote>()
+            .HasOne(v => v.Review)
+            .WithMany(r => r.Votes)
+            .HasForeignKey(v => v.ReviewId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<TourReviewVote>()
+            .HasOne(v => v.User)
+            .WithMany()
+            .HasForeignKey(v => v.UserId)
             .OnDelete(DeleteBehavior.NoAction);
 
         

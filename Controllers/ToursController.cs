@@ -108,17 +108,24 @@ namespace Tourbooking.Controllers
                 return NotFound();
             }
 
+            var currentUserId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
             var publicReviews = await _context.TourReviews
                 .Include(r => r.User)
+                .Include(r => r.Votes)
                 .Where(r => r.TourId == tour.TourId)
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(8)
                 .Select(r => new PublicTourReviewRow(
+                    r.ReviewId,
                     !string.IsNullOrWhiteSpace(r.User!.FullName) ? r.User!.FullName! : (r.User!.UserName ?? "Khách du lịch"),
                     r.Rating,
                     r.Title,
                     r.Content,
-                    r.CreatedAt))
+                    r.CreatedAt,
+                    r.Votes.Count(v => v.Value == 1),
+                    r.Votes.Count(v => v.Value == -1),
+                    r.Votes.Where(v => v.UserId == currentUserId).Select(v => (int?)v.Value).FirstOrDefault()))
                 .ToListAsync();
 
             ViewData["PublicReviews"] = publicReviews;
