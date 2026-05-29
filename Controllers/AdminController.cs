@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.IO;
 using ClosedXML.Excel;
-using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -57,8 +56,9 @@ public class AdminController : Controller
         return View(model);
     }
 
-    public async Task<IActionResult> Tours(string? region)
+    public async Task<IActionResult> Tours(string? region, int page = 1)
     {
+        const int pageSize = 10;
         var toursQuery = _context.Tours.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(region))
@@ -70,7 +70,29 @@ public class AdminController : Controller
             }
         }
 
-        var tours = await toursQuery.ToListAsync();
+        var totalTours = await toursQuery.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalTours / (double)pageSize);
+
+        if (totalPages == 0)
+        {
+            totalPages = 1;
+        }
+
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        var tours = await toursQuery
+            .OrderBy(t => t.TourId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
         var destinations = tours
             .Select(t => t.Location)
             .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -79,11 +101,14 @@ public class AdminController : Controller
 
         var model = new AdminToursViewModel
         {
-            TotalTours = tours.Count,
+            TotalTours = totalTours,
             Destinations = destinations,
             AverageBookingRate = 88,
             Regions = new List<string> { "Miền Bắc", "Miền Trung", "Miền Nam" },
             SelectedRegion = region,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            PageSize = pageSize,
             Tours = tours.Select(t => new AdminTourRow
             {
                 TourId = t.TourId,
@@ -146,24 +171,172 @@ public class AdminController : Controller
         return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
-    public IActionResult Bookings()
+    public async Task<IActionResult> Bookings(string? status, int page = 1)
     {
+        const int pageSize = 10;
+        var bookingsQuery = _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.Tour)
+            .OrderByDescending(b => b.CreatedAt)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (string.Equals(status, "PendingConfirmation", StringComparison.OrdinalIgnoreCase))
+            {
+                bookingsQuery = bookingsQuery.Where(b =>
+                    b.Status == "PendingConfirmation" || b.Status == "Pending" || b.Status == "Processing");
+            }
+            else
+            {
+                bookingsQuery = bookingsQuery.Where(b => b.Status == status);
+            }
+        }
+
+        var totalBookings = await bookingsQuery.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalBookings / (double)pageSize);
+
+        if (totalPages == 0)
+        {
+            totalPages = 1;
+        }
+
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        var bookings = await bookingsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalRevenue = bookings.Sum(b => b.TotalPrice);
+        var averageGroup = totalBookings == 0
+            ? 0
+            : bookings.Average(b => b.GuestCount);
+        var locations = await _context.Tours
+            .AsNoTracking()
+            .Select(t => t.Location)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .ToListAsync();
+
+        var provinceCount = locations
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+
         var model = new AdminBookingsViewModel
         {
-            TotalBookings = 1284,
-            Revenue = "$42.8k",
-            ActiveTours = 56,
-            AverageGroupSize = "3.2",
-            RecentBookings = new List<AdminBookingRow>
-            {
-                new("SJ", "Sarah Jenkins", "sarah@voyager.com", "Bali Zen Sanctuary Retreat", "Oct 24, 2024", 2, "$2,450.00", "Confirmed"),
-                new("MT", "Marcus Thompson", "marcus@voyager.com", "Kyoto Traditional Trails", "Nov 12, 2024", 4, "$5,120.00", "Pending"),
-                new("ER", "Elena Rodriguez", "elena@voyager.com", "Amalfi Coastal Dream", "Dec 05, 2024", 1, "$1,890.00", "Processing"),
-                new("DW", "David Wilson", "david@voyager.com", "Imperial Heritage Tour", "Oct 28, 2024", 2, "$3,100.00", "Cancelled")
-            }
+            TotalBookings = totalBookings,
+            Revenue = totalRevenue.ToString("C0", VnCulture),
+            ActiveTours = provinceCount,
+            AverageGroupSize = totalBookings == 0
+                ? "0"
+                : averageGroup.ToString("0.0", CultureInfo.InvariantCulture),
+            Statuses = new List<string> { "PendingConfirmation", "Confirmed", "Cancelled" },
+            SelectedStatus = status,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            PageSize = pageSize,
+            RecentBookings = bookings.Select(b => new AdminBookingRow(
+                b.BookingId,
+                GetInitials(b.FullName),
+                b.FullName,
+                b.Email,
+                b.Tour?.Name ?? "-",
+                b.TravelDate.ToString("dd/MM/yyyy"),
+                b.GuestCount,
+                b.TotalPrice.ToString("C0", VnCulture),
+                b.Status)).ToList()
         };
 
         return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportBookingsExcel()
+    {
+        var bookings = await _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.Tour)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Bookings");
+        sheet.Cell(1, 1).Value = "BookingId";
+        sheet.Cell(1, 2).Value = "Khach hang";
+        sheet.Cell(1, 3).Value = "Email";
+        sheet.Cell(1, 4).Value = "Ten tour";
+        sheet.Cell(1, 5).Value = "Ngay di";
+        sheet.Cell(1, 6).Value = "So luong";
+        sheet.Cell(1, 7).Value = "Tong gia";
+        sheet.Cell(1, 8).Value = "Trang thai";
+
+        var row = 2;
+        foreach (var booking in bookings)
+        {
+            sheet.Cell(row, 1).Value = booking.BookingId;
+            sheet.Cell(row, 2).Value = booking.FullName;
+            sheet.Cell(row, 3).Value = booking.Email;
+            sheet.Cell(row, 4).Value = booking.Tour?.Name ?? "-";
+            sheet.Cell(row, 5).Value = booking.TravelDate.ToString("dd/MM/yyyy");
+            sheet.Cell(row, 6).Value = booking.GuestCount;
+            sheet.Cell(row, 7).Value = booking.TotalPrice;
+            sheet.Cell(row, 8).Value = booking.Status;
+            row++;
+        }
+
+        sheet.Columns().AdjustToContents();
+
+        await using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        var fileName = $"bookings-report-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
+        return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateBookingStatus(int id, string status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == id);
+        if (booking == null)
+        {
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        var normalized = status.Trim();
+        var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Confirmed",
+            "Cancelled",
+            "PendingConfirmation",
+            "Pending"
+        };
+
+        if (!allowed.Contains(normalized))
+        {
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        booking.Status = normalized.Equals("Pending", StringComparison.OrdinalIgnoreCase)
+            ? "PendingConfirmation"
+            : normalized;
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Bookings));
     }
 
     public async Task<IActionResult> Users(int page = 1)

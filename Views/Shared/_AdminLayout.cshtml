@@ -12,6 +12,7 @@
     <title>@pageTitle - Quản trị Voyager</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" />
     <link rel="stylesheet" href="~/css/admin-dashboard.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
     <div class="admin-shell">
