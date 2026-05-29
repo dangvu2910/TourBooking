@@ -11,7 +11,10 @@
         <h1>Quản lý tour</h1>
         <p>Quản lý và tuyển chọn các hành trình đẳng cấp.</p>
     </div>
-    <a asp-controller="Tours" asp-action="Create" class="primary-action">+ Thêm tour mới</a>
+    <div class="hero-actions">
+        <button type="button" class="ghost-action" id="export-tours" data-export-url="@Url.Action("ExportToursExcel", "Admin", new { region = string.IsNullOrWhiteSpace(Model.SelectedRegion) ? null : Model.SelectedRegion })">Xuất báo cáo</button>
+        <a asp-controller="Tours" asp-action="Create" class="primary-action">+ Thêm tour mới</a>
+    </div>
 </section>
 
 <section class="stat-grid">
@@ -48,8 +51,16 @@
                 <p>Những tour mới nhất đang hiển thị cho khách</p>
         </div>
         <div class="table-actions">
-                <button type="button">Lọc</button>
-                <button type="button">Xuất CSV</button>
+                <form method="get" asp-action="Tours" asp-controller="Admin" class="filter-inline">
+                    <select name="region" aria-label="Lọc theo miền">
+                        <option value="">Tất cả miền</option>
+                        @foreach (var region in Model.Regions)
+                        {
+                            <option value="@region" selected="@(region == Model.SelectedRegion)">@region</option>
+                        }
+                    </select>
+                    <button type="submit">Lọc</button>
+                </form>
         </div>
     </div>
 
@@ -73,7 +84,7 @@
                             <div class="tour-cell">
                                 @if (!string.IsNullOrWhiteSpace(tour.ImageUrl))
                                 {
-                                    <img class="tour-thumb" src="@tour.ImageUrl" alt="@tour.Name" />
+                                    <img class="tour-thumb" src="@Url.Content(tour.ImageUrl)" alt="@tour.Name" />
                                 }
                                 else
                                 {
@@ -93,7 +104,10 @@
                         <td>
                             <div class="action-buttons">
                                 <a asp-controller="Tours" asp-action="Edit" asp-route-id="@tour.TourId" title="Chỉnh sửa">✎</a>
-                                <a asp-controller="Tours" asp-action="Delete" asp-route-id="@tour.TourId" title="Xóa">🗑</a>
+                                <form asp-controller="Tours" asp-action="Delete" asp-route-id="@tour.TourId" method="post" class="inline-form" onsubmit="return confirm('Bạn chắc chắn muốn xóa tour này?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="icon-button is-danger" title="Xóa">🗑</button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -101,4 +115,96 @@
             </tbody>
         </table>
     </div>
+
+    <div class="table-footer">
+        @{
+            var startIndex = Model.TotalTours == 0 ? 0 : (Model.CurrentPage - 1) * Model.PageSize + 1;
+            var endIndex = Model.TotalTours == 0 ? 0 : Model.CurrentPage * Model.PageSize;
+            if (endIndex > Model.TotalTours)
+            {
+                endIndex = Model.TotalTours;
+            }
+        }
+        <span>Hiển thị @startIndex-@endIndex của @Model.TotalTours tour</span>
+        <div class="pager">
+            @if (Model.CurrentPage > 1)
+            {
+                <a class="page-btn" asp-action="Tours" asp-route-region="@Model.SelectedRegion" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">‹</span>
+            }
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Tours" asp-route-region="@Model.SelectedRegion" asp-route-page="@i">@i</a>
+            }
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a class="page-btn" asp-action="Tours" asp-route-region="@Model.SelectedRegion" asp-route-page="@(Model.CurrentPage + 1)">›</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">›</span>
+            }
+        </div>
+    </div>
 </section>
+
+@section Scripts {
+    <script>
+        const exportButton = document.getElementById('export-tours');
+
+        const downloadFallback = (url) => {
+            window.location.href = url;
+        };
+
+        const pad2 = (value) => String(value).padStart(2, '0');
+
+        if (exportButton) {
+            exportButton.addEventListener('click', async () => {
+                const url = exportButton.getAttribute('data-export-url');
+                if (!url) {
+                    return;
+                }
+
+                if (!window.showSaveFilePicker) {
+                    downloadFallback(url);
+                    return;
+                }
+
+                try {
+                    const now = new Date();
+                    const stamp = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}-${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
+                    const suggestedName = `tours-report-${stamp}.xlsx`;
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName,
+                        types: [
+                            {
+                                description: 'Excel Workbook',
+                                accept: {
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+                                }
+                            }
+                        ]
+                    });
+
+                    const response = await fetch(url, { credentials: 'same-origin' });
+                    if (!response.ok) {
+                        throw new Error('Export failed');
+                    }
+
+                    const blob = await response.blob();
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                } catch (error) {
+                    if (error && error.name === 'AbortError') {
+                        return;
+                    }
+                    downloadFallback(url);
+                }
+            });
+        }
+    </script>
+}

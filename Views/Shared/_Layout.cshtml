@@ -47,6 +47,12 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark nav-link-pill @(currentController == "Home" && currentAction == "Booking" ? "is-active" : "")" asp-area="" asp-controller="Home" asp-action="Booking">Đặt chỗ</a>
                         </li>
+                        @if (User?.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark nav-link-pill @(currentController == "Account" && currentAction == "Reviews" ? "is-active" : "")" asp-area="" asp-controller="Account" asp-action="Reviews">Đánh giá</a>
+                            </li>
+                        }
                     </ul>
                         <div class="d-flex gap-2 align-items-center navbar-auth">
                         @if (User?.Identity?.IsAuthenticated == true)
@@ -62,6 +68,9 @@
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <a class="dropdown-item" asp-controller="Account" asp-action="Profile">Hồ sơ</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="Reviews">Đánh giá của tôi</a>
                                         </li>
                                         <li>
                                             <form asp-controller="Account" asp-action="Logout" method="post" class="px-3 py-2">

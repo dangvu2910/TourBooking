@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Tourbooking.Models;
+using Tourbooking.ViewModels;
 
 namespace Tourbooking.Controllers
 {
@@ -107,6 +108,23 @@ namespace Tourbooking.Controllers
                 return NotFound();
             }
 
+            var publicReviews = await _context.TourReviews
+                .Include(r => r.User)
+                .Where(r => r.TourId == tour.TourId)
+                .OrderByDescending(r => r.CreatedAt)
+                .Take(8)
+                .Select(r => new PublicTourReviewRow(
+                    !string.IsNullOrWhiteSpace(r.User!.FullName) ? r.User!.FullName! : (r.User!.UserName ?? "Khách du lịch"),
+                    r.Rating,
+                    r.Title,
+                    r.Content,
+                    r.CreatedAt))
+                .ToListAsync();
+
+            ViewData["PublicReviews"] = publicReviews;
+            ViewData["ReviewCount"] = publicReviews.Count;
+            ViewData["AverageRating"] = publicReviews.Count > 0 ? publicReviews.Average(r => r.Rating) : 0d;
+
             return View(tour);
         }
 
@@ -121,7 +139,7 @@ namespace Tourbooking.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TourId,Name,Location,Price,Description,CategoryId")] Tour tour, IFormFile imageFile)
+        public async Task<IActionResult> Create([Bind("TourId,Name,Location,Price,Description,CategoryId")] Tour tour, IFormFile? imageFile)
         {
             TryNormalizePriceFromRequest(tour);
 
@@ -150,13 +168,28 @@ namespace Tourbooking.Controllers
                         tour.ImageUrl = "/images/" + uniqueFileName;
                     }
 
-                    _context.Add(tour);
-                    await _context.SaveChangesAsync();
+                    tour.TourId = await GetNextTourIdAsync();
+
+                    await using var transaction = await _context.Database.BeginTransactionAsync();
+                    await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Tours ON");
+
+                    try
+                    {
+                        _context.Add(tour);
+                        await _context.SaveChangesAsync();
+
+                        await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Tours OFF");
+                        await transaction.CommitAsync();
+                    }
+                    finally
+                    {
+                        await _context.Database.ExecuteSqlRawAsync("SET IDENTITY_INSERT Tours OFF");
+                    }
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("imageFile", "Lỗi: " + ex.Message);
+                    ModelState.AddModelError(string.Empty, "Lỗi: " + ex.Message);
                 }
             }
             return View(tour);
@@ -183,7 +216,7 @@ namespace Tourbooking.Controllers
         [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TourId,Name,Location,Price,Description,ImageUrl,CategoryId")] Tour tour, IFormFile imageFile)
+        public async Task<IActionResult> Edit(int id, [Bind("TourId,Name,Location,Price,Description,CategoryId")] Tour tour, IFormFile? imageFile)
         {
             TryNormalizePriceFromRequest(tour);
 
@@ -196,16 +229,17 @@ namespace Tourbooking.Controllers
             {
                 try
                 {
-                    var existingTour = await _context.Tours.AsNoTracking().FirstOrDefaultAsync(t => t.TourId == id);
+                    var existingTour = await _context.Tours.FirstOrDefaultAsync(t => t.TourId == id);
                     if (existingTour == null)
                     {
                         return NotFound();
                     }
 
-                    if (string.IsNullOrWhiteSpace(tour.ImageUrl))
-                    {
-                        tour.ImageUrl = existingTour.ImageUrl;
-                    }
+                    existingTour.Name = tour.Name;
+                    existingTour.Location = tour.Location;
+                    existingTour.Price = tour.Price;
+                    existingTour.Description = tour.Description;
+                    existingTour.CategoryId = tour.CategoryId;
 
                     if (imageFile != null && imageFile.Length > 0)
                     {
@@ -233,12 +267,11 @@ namespace Tourbooking.Controllers
                             await imageFile.CopyToAsync(fileStream);
                         }
 
-                        tour.ImageUrl = "/images/" + uniqueFileName;
+                        existingTour.ImageUrl = "/images/" + uniqueFileName;
                     }
 
-                    _context.Update(tour);
                     await _context.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("Tours", "Admin");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -285,13 +318,33 @@ namespace Tourbooking.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var tour = await _context.Tours.FindAsync(id);
-            if (tour != null)
+            if (tour == null)
             {
-                _context.Tours.Remove(tour);
+                return RedirectToAction("Tours", "Admin");
             }
 
+            var bookings = await _context.Bookings
+                .Where(b => b.TourId == id)
+                .ToListAsync();
+
+            if (bookings.Count > 0)
+            {
+                var bookingIds = bookings.Select(b => b.BookingId).ToList();
+                var payments = await _context.Payments
+                    .Where(p => bookingIds.Contains(p.BookingId))
+                    .ToListAsync();
+
+                if (payments.Count > 0)
+                {
+                    _context.Payments.RemoveRange(payments);
+                }
+
+                _context.Bookings.RemoveRange(bookings);
+            }
+
+            _context.Tours.Remove(tour);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Tours", "Admin");
         }
 
         private bool TourExists(int id)
@@ -308,13 +361,15 @@ namespace Tourbooking.Controllers
                 return;
             }
 
-            var styles = NumberStyles.AllowDecimalPoint | NumberStyles.AllowThousands;
-
-            if (decimal.TryParse(rawPrice, styles, CultureInfo.CurrentCulture, out var currentCulturePrice)
-                || decimal.TryParse(rawPrice, styles, new CultureInfo("vi-VN"), out currentCulturePrice)
-                || decimal.TryParse(rawPrice, styles, CultureInfo.InvariantCulture, out currentCulturePrice))
+            var digitsOnly = new string(rawPrice.Where(char.IsDigit).ToArray());
+            if (string.IsNullOrWhiteSpace(digitsOnly))
             {
-                tour.Price = currentCulturePrice;
+                return;
+            }
+
+            if (decimal.TryParse(digitsOnly, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedPrice))
+            {
+                tour.Price = parsedPrice;
                 ModelState.Remove(nameof(Tour.Price));
             }
         }
@@ -359,6 +414,52 @@ namespace Tourbooking.Controllers
             }
 
             return keywords.ToList();
+        }
+
+        private static bool IsDalatTour(string? name, string? location)
+        {
+            return ContainsDalat(name) || ContainsDalat(location);
+        }
+
+        private static bool ContainsDalat(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            return value.Contains("Đà Lạt", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("Da Lat", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("Dalat", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task<int> GetNextTourIdAsync()
+        {
+            var ids = await _context.Tours
+                .AsNoTracking()
+                .Select(t => t.TourId)
+                .OrderBy(id => id)
+                .ToListAsync();
+
+            if (ids.Count == 0)
+            {
+                return 1;
+            }
+
+            var expected = 1;
+            foreach (var id in ids)
+            {
+                if (id > expected)
+                {
+                    return expected;
+                }
+                if (id == expected)
+                {
+                    expected++;
+                }
+            }
+
+            return expected;
         }
     }
 }

@@ -45,6 +45,38 @@
     string staticTourImage6 = "";
 
     var staticImages = new[] { staticTourImage1, staticTourImage2, staticTourImage3, staticTourImage4, staticTourImage5, staticTourImage6 };
+
+    string NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+        {
+            return string.Empty;
+        }
+
+        if (imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.StartsWith("~", StringComparison.OrdinalIgnoreCase))
+        {
+            return imageUrl;
+        }
+
+        if (imageUrl.StartsWith("wwwroot/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/" + imageUrl.Substring("wwwroot/".Length).TrimStart('/');
+        }
+
+        if (imageUrl.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+        {
+            return imageUrl.Replace("\\", "/");
+        }
+
+        if (imageUrl.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/" + imageUrl.TrimStart('/');
+        }
+
+        return "/images/" + imageUrl.TrimStart('/');
+    }
 }
 
 <link rel="stylesheet" href="~/css/tours.css" asp-append-version="true" />
@@ -126,13 +158,14 @@
                         var displayImage = !string.IsNullOrWhiteSpace(staticImages[i])
                             ? staticImages[i]
                             : item.ImageUrl;
+                        displayImage = NormalizeImageUrl(displayImage);
 
                         <a class="tour-card-link" asp-action="Details" asp-route-id="@item.TourId">
                             <article class="tour-card">
                                 <div class="tour-image">
                                     @if (!string.IsNullOrWhiteSpace(displayImage))
                                     {
-                                        <img src="@displayImage" alt="@item.Name" />
+                                        <img src="@Url.Content(displayImage)" alt="@item.Name" />
                                     }
                                     else
                                     {

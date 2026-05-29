@@ -2,15 +2,18 @@
 
 @{
     ViewData["Title"] = "Đặt chỗ";
-    Layout = "_AdminBookingsLayout";
+    Layout = "_AdminLayout";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin-bookings.css" asp-append-version="true" />
+}
 <section class="bookings-hero">
     <div>
         <h1>Quản lý đặt chỗ</h1>
         <p>Rà soát và quản lý các đặt chỗ tour gần đây.</p>
     </div>
-    <button class="primary-action" type="button">Xuất CSV</button>
+    <button class="primary-action" type="button" id="export-bookings" data-export-url="@Url.Action("ExportBookingsExcel", "Admin")">Xuất báo cáo</button>
 </section>
 
 <section class="stat-grid">
@@ -20,7 +23,7 @@
             Tổng số đặt chỗ
         </div>
         <div class="stat-value">@Model.TotalBookings</div>
-        <div class="stat-meta">+12% trong tháng</div>
+        <div class="stat-meta">Tổng số đặt chỗ hiện có</div>
     </article>
     <article class="stat-card">
         <div class="stat-title">
@@ -28,25 +31,104 @@
             Doanh thu
         </div>
         <div class="stat-value">@Model.Revenue</div>
-        <div class="stat-meta">+8% so với tháng trước</div>
+        <div class="stat-meta">Tổng doanh thu đã ghi nhận</div>
     </article>
     <article class="stat-card">
         <div class="stat-title">
             <div class="stat-icon">AT</div>
-            Tour đang hoạt động
+            Tỉnh
         </div>
         <div class="stat-value">@Model.ActiveTours</div>
-        <div class="stat-meta">Trên 14 quốc gia</div>
+        <div class="stat-meta">Số tỉnh/thành có tour</div>
     </article>
     <article class="stat-card">
         <div class="stat-title">
             <div class="stat-icon">AG</div>
-            Quy mô nhóm TB
+            Số người
         </div>
         <div class="stat-value">@Model.AverageGroupSize</div>
-        <div class="stat-meta">Cá nhân hóa hành trình</div>
+        <div class="stat-meta">Trung bình mỗi đặt chỗ</div>
     </article>
 </section>
+
+@section Scripts {
+    <script>
+        const exportButton = document.getElementById('export-bookings');
+
+        const downloadFallback = (url) => {
+            window.location.href = url;
+        };
+
+        const pad2 = (value) => String(value).padStart(2, '0');
+
+        if (exportButton) {
+            exportButton.addEventListener('click', async () => {
+                const url = exportButton.getAttribute('data-export-url');
+                if (!url) {
+                    return;
+                }
+
+                if (!window.showSaveFilePicker) {
+                    downloadFallback(url);
+                    return;
+                }
+
+                try {
+                    const now = new Date();
+                    const stamp = `${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}-${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}`;
+                    const suggestedName = `bookings-report-${stamp}.xlsx`;
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName,
+                        types: [
+                            {
+                                description: 'Excel Workbook',
+                                accept: {
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+                                }
+                            }
+                        ]
+                    });
+
+                    const response = await fetch(url, { credentials: 'same-origin' });
+                    if (!response.ok) {
+                        throw new Error('Export failed');
+                    }
+
+                    const blob = await response.blob();
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                } catch (error) {
+                    if (error && error.name === 'AbortError') {
+                        return;
+                    }
+                    downloadFallback(url);
+                }
+            });
+        }
+
+        const statusClassMap = {
+            PendingConfirmation: 'is-yellow',
+            Confirmed: 'is-green',
+            Cancelled: 'is-red'
+        };
+
+        const updateStatusClass = (select) => {
+            if (!select) {
+                return;
+            }
+            select.classList.remove('is-yellow', 'is-green', 'is-red');
+            const value = select.value || select.dataset.status || 'PendingConfirmation';
+            const className = statusClassMap[value] || 'is-yellow';
+            select.classList.add(className);
+        };
+
+        document.querySelectorAll('.status-select').forEach((select) => {
+            updateStatusClass(select);
+            select.addEventListener('change', () => updateStatusClass(select));
+        });
+    </script>
+}
 
 <section class="panel-card">
     <div class="panel-header">
@@ -55,8 +137,21 @@
                 <p>Hoạt động mới nhất trong quy trình đặt chỗ</p>
         </div>
         <div class="table-actions">
-                <button type="button">Lọc</button>
-                <button type="button">Sắp xếp</button>
+                <form method="get" asp-action="Bookings" asp-controller="Admin" class="filter-inline">
+                    <select name="status" aria-label="Lọc theo trạng thái">
+                        <option value="">Tất cả trạng thái</option>
+                        @foreach (var status in Model.Statuses)
+                        {
+                            var label = status == "PendingConfirmation"
+                                ? "Chờ xác nhận"
+                                : status == "Confirmed"
+                                    ? "Đã xác nhận"
+                                    : "Đã hủy";
+                            <option value="@status" selected="@(status == Model.SelectedStatus)">@label</option>
+                        }
+                    </select>
+                    <button type="submit">Lọc</button>
+                </form>
         </div>
     </div>
 
@@ -93,20 +188,60 @@
                         <td class="table-strong">@booking.TotalPrice</td>
                         <td>
                             @{
-                                var statusLabel = booking.Status switch
+                                var currentStatus = booking.Status;
+                                if (string.Equals(currentStatus, "Pending", StringComparison.OrdinalIgnoreCase)
+                                    || string.Equals(currentStatus, "Processing", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    "Confirmed" => "Đã xác nhận",
-                                    "Pending" => "Chờ xử lý",
-                                    "Processing" => "Đang xử lý",
-                                    "Cancelled" => "Đã hủy",
-                                    _ => booking.Status
-                                };
+                                    currentStatus = "PendingConfirmation";
+                                }
                             }
-                            <span class="status-pill @booking.Status.ToLower()">@statusLabel</span>
+                            <form asp-action="UpdateBookingStatus" asp-route-id="@booking.BookingId" method="post" class="status-form">
+                                @Html.AntiForgeryToken()
+                                <select name="status" aria-label="Trạng thái đặt chỗ" class="status-select @(currentStatus == "Confirmed" ? "is-green" : currentStatus == "Cancelled" ? "is-red" : "is-yellow")" data-status="@currentStatus">
+                                    <option value="PendingConfirmation" selected="@(currentStatus == "PendingConfirmation")">Chờ xác nhận</option>
+                                    <option value="Confirmed" selected="@(currentStatus == "Confirmed")">Đã xác nhận</option>
+                                    <option value="Cancelled" selected="@(currentStatus == "Cancelled")">Đã hủy</option>
+                                </select>
+                                <button type="submit" class="ghost-action">Lưu</button>
+                            </form>
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
+    </div>
+
+    <div class="table-footer">
+        @{
+            var startIndex = Model.TotalBookings == 0 ? 0 : (Model.CurrentPage - 1) * Model.PageSize + 1;
+            var endIndex = Model.TotalBookings == 0 ? 0 : Model.CurrentPage * Model.PageSize;
+            if (endIndex > Model.TotalBookings)
+            {
+                endIndex = Model.TotalBookings;
+            }
+        }
+        <span>Hiển thị @startIndex-@endIndex của @Model.TotalBookings đặt chỗ</span>
+        <div class="pager">
+            @if (Model.CurrentPage > 1)
+            {
+                <a class="page-btn" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">‹</span>
+            }
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-page="@i">@i</a>
+            }
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a class="page-btn" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-page="@(Model.CurrentPage + 1)">›</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">›</span>
+            }
+        </div>
     </div>
 </section>

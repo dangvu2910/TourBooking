@@ -40,7 +40,7 @@ public class AdminController : Controller
                 {
                     TourId = t.TourId,
                     Name = t.Name,
-                    ImageUrl = t.ImageUrl ?? string.Empty,
+                    ImageUrl = NormalizeImageUrl(t.ImageUrl) ?? string.Empty,
                     Location = t.Location,
                     Metric = t.Price.ToString("C0", VnCulture)
                 })
@@ -56,9 +56,43 @@ public class AdminController : Controller
         return View(model);
     }
 
-    public async Task<IActionResult> Tours()
+    public async Task<IActionResult> Tours(string? region, int page = 1)
     {
-        var tours = await _context.Tours.AsNoTracking().ToListAsync();
+        const int pageSize = 10;
+        var toursQuery = _context.Tours.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(region))
+        {
+            var keywords = GetRegionKeywords(new[] { region });
+            if (keywords.Count > 0)
+            {
+                toursQuery = toursQuery.Where(t => keywords.Any(k => t.Location.Contains(k)));
+            }
+        }
+
+        var totalTours = await toursQuery.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalTours / (double)pageSize);
+
+        if (totalPages == 0)
+        {
+            totalPages = 1;
+        }
+
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        var tours = await toursQuery
+            .OrderBy(t => t.TourId)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
         var destinations = tours
             .Select(t => t.Location)
             .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -67,15 +101,20 @@ public class AdminController : Controller
 
         var model = new AdminToursViewModel
         {
-            TotalTours = tours.Count,
+            TotalTours = totalTours,
             Destinations = destinations,
             AverageBookingRate = 88,
+            Regions = new List<string> { "Miền Bắc", "Miền Trung", "Miền Nam" },
+            SelectedRegion = region,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            PageSize = pageSize,
             Tours = tours.Select(t => new AdminTourRow
             {
                 TourId = t.TourId,
                 Name = t.Name,
                 Location = t.Location,
-                ImageUrl = t.ImageUrl ?? string.Empty,
+                ImageUrl = NormalizeImageUrl(t.ImageUrl) ?? string.Empty,
                 Price = t.Price.ToString("C0", VnCulture),
                 Status = "Published"
             }).ToList()
@@ -84,24 +123,220 @@ public class AdminController : Controller
         return View(model);
     }
 
-    public IActionResult Bookings()
+    [HttpGet]
+    public async Task<IActionResult> ExportToursExcel(string? region)
     {
+        var toursQuery = _context.Tours.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(region))
+        {
+            var keywords = GetRegionKeywords(new[] { region });
+            if (keywords.Count > 0)
+            {
+                toursQuery = toursQuery.Where(t => keywords.Any(k => t.Location.Contains(k)));
+            }
+        }
+
+        var tours = await toursQuery.OrderBy(t => t.TourId).ToListAsync();
+
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Tours");
+        sheet.Cell(1, 1).Value = "TourId";
+        sheet.Cell(1, 2).Value = "Ten tour";
+        sheet.Cell(1, 3).Value = "Dia diem";
+        sheet.Cell(1, 4).Value = "Gia";
+        sheet.Cell(1, 5).Value = "Trang thai";
+        sheet.Cell(1, 6).Value = "Anh";
+
+        var row = 2;
+        foreach (var tour in tours)
+        {
+            var status = "Da dang";
+            sheet.Cell(row, 1).Value = tour.TourId;
+            sheet.Cell(row, 2).Value = tour.Name;
+            sheet.Cell(row, 3).Value = tour.Location;
+            sheet.Cell(row, 4).Value = tour.Price;
+            sheet.Cell(row, 5).Value = status;
+            sheet.Cell(row, 6).Value = tour.ImageUrl ?? string.Empty;
+            row++;
+        }
+
+        sheet.Columns().AdjustToContents();
+
+        await using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        var fileName = $"tours-report-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
+        return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    }
+
+    public async Task<IActionResult> Bookings(string? status, int page = 1)
+    {
+        const int pageSize = 10;
+        var bookingsQuery = _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.Tour)
+            .OrderByDescending(b => b.CreatedAt)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (string.Equals(status, "PendingConfirmation", StringComparison.OrdinalIgnoreCase))
+            {
+                bookingsQuery = bookingsQuery.Where(b =>
+                    b.Status == "PendingConfirmation" || b.Status == "Pending" || b.Status == "Processing");
+            }
+            else
+            {
+                bookingsQuery = bookingsQuery.Where(b => b.Status == status);
+            }
+        }
+
+        var totalBookings = await bookingsQuery.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalBookings / (double)pageSize);
+
+        if (totalPages == 0)
+        {
+            totalPages = 1;
+        }
+
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        var bookings = await bookingsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var totalRevenue = bookings.Sum(b => b.TotalPrice);
+        var averageGroup = totalBookings == 0
+            ? 0
+            : bookings.Average(b => b.GuestCount);
+        var locations = await _context.Tours
+            .AsNoTracking()
+            .Select(t => t.Location)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .ToListAsync();
+
+        var provinceCount = locations
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Count();
+
         var model = new AdminBookingsViewModel
         {
-            TotalBookings = 1284,
-            Revenue = "$42.8k",
-            ActiveTours = 56,
-            AverageGroupSize = "3.2",
-            RecentBookings = new List<AdminBookingRow>
-            {
-                new("SJ", "Sarah Jenkins", "sarah@voyager.com", "Bali Zen Sanctuary Retreat", "Oct 24, 2024", 2, "$2,450.00", "Confirmed"),
-                new("MT", "Marcus Thompson", "marcus@voyager.com", "Kyoto Traditional Trails", "Nov 12, 2024", 4, "$5,120.00", "Pending"),
-                new("ER", "Elena Rodriguez", "elena@voyager.com", "Amalfi Coastal Dream", "Dec 05, 2024", 1, "$1,890.00", "Processing"),
-                new("DW", "David Wilson", "david@voyager.com", "Imperial Heritage Tour", "Oct 28, 2024", 2, "$3,100.00", "Cancelled")
-            }
+            TotalBookings = totalBookings,
+            Revenue = totalRevenue.ToString("C0", VnCulture),
+            ActiveTours = provinceCount,
+            AverageGroupSize = totalBookings == 0
+                ? "0"
+                : averageGroup.ToString("0.0", CultureInfo.InvariantCulture),
+            Statuses = new List<string> { "PendingConfirmation", "Confirmed", "Cancelled" },
+            SelectedStatus = status,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            PageSize = pageSize,
+            RecentBookings = bookings.Select(b => new AdminBookingRow(
+                b.BookingId,
+                GetInitials(b.FullName),
+                b.FullName,
+                b.Email,
+                b.Tour?.Name ?? "-",
+                b.TravelDate.ToString("dd/MM/yyyy"),
+                b.GuestCount,
+                b.TotalPrice.ToString("C0", VnCulture),
+                b.Status)).ToList()
         };
 
         return View(model);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportBookingsExcel()
+    {
+        var bookings = await _context.Bookings
+            .AsNoTracking()
+            .Include(b => b.Tour)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync();
+
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Bookings");
+        sheet.Cell(1, 1).Value = "BookingId";
+        sheet.Cell(1, 2).Value = "Khach hang";
+        sheet.Cell(1, 3).Value = "Email";
+        sheet.Cell(1, 4).Value = "Ten tour";
+        sheet.Cell(1, 5).Value = "Ngay di";
+        sheet.Cell(1, 6).Value = "So luong";
+        sheet.Cell(1, 7).Value = "Tong gia";
+        sheet.Cell(1, 8).Value = "Trang thai";
+
+        var row = 2;
+        foreach (var booking in bookings)
+        {
+            sheet.Cell(row, 1).Value = booking.BookingId;
+            sheet.Cell(row, 2).Value = booking.FullName;
+            sheet.Cell(row, 3).Value = booking.Email;
+            sheet.Cell(row, 4).Value = booking.Tour?.Name ?? "-";
+            sheet.Cell(row, 5).Value = booking.TravelDate.ToString("dd/MM/yyyy");
+            sheet.Cell(row, 6).Value = booking.GuestCount;
+            sheet.Cell(row, 7).Value = booking.TotalPrice;
+            sheet.Cell(row, 8).Value = booking.Status;
+            row++;
+        }
+
+        sheet.Columns().AdjustToContents();
+
+        await using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        stream.Position = 0;
+
+        var fileName = $"bookings-report-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx";
+        return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateBookingStatus(int id, string status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.BookingId == id);
+        if (booking == null)
+        {
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        var normalized = status.Trim();
+        var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Confirmed",
+            "Cancelled",
+            "PendingConfirmation",
+            "Pending"
+        };
+
+        if (!allowed.Contains(normalized))
+        {
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        booking.Status = normalized.Equals("Pending", StringComparison.OrdinalIgnoreCase)
+            ? "PendingConfirmation"
+            : normalized;
+
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Bookings));
     }
 
     public async Task<IActionResult> Users(int page = 1)
@@ -436,5 +671,85 @@ public class AdminController : Controller
         var first = parts[0][0];
         var last = parts[^1][0];
         return string.Concat(first, last).ToUpperInvariant();
+    }
+
+    private static List<string> GetRegionKeywords(IEnumerable<string> regions)
+    {
+        var regionKeywords = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Miền Bắc"] = new[]
+            {
+                "Hà Nội", "Ha Noi", "Hải Phòng", "Hai Phong", "Quảng Ninh", "Quang Ninh",
+                "Lào Cai", "Lao Cai", "Sa Pa", "Sapa", "Hà Giang", "Ha Giang",
+                "Sơn La", "Son La", "Mộc Châu", "Moc Chau", "Ninh Bình", "Ninh Binh"
+            },
+            ["Miền Trung"] = new[]
+            {
+                "Đà Nẵng", "Da Nang", "Quảng Nam", "Quang Nam", "Hội An", "Hoi An",
+                "Huế", "Hue", "Thừa Thiên", "Bình Định", "Binh Dinh", "Quy Nhơn", "Quy Nhon",
+                "Phú Yên", "Phu Yen", "Khánh Hòa", "Khanh Hoa", "Nha Trang",
+                "Đắk Lắk", "Dak Lak", "Lâm Đồng", "Lam Dong", "Đà Lạt", "Da Lat",
+                "Quảng Ngãi", "Quang Ngai"
+            },
+            ["Miền Nam"] = new[]
+            {
+                "TP. Hồ Chí Minh", "TP Ho Chi Minh", "Hồ Chí Minh", "Ho Chi Minh", "Sài Gòn", "Sai Gon",
+                "Vũng Tàu", "Vung Tau", "Đồng Nai", "Dong Nai", "Cần Thơ", "Can Tho",
+                "Phú Quốc", "Phu Quoc", "Bình Dương", "Binh Duong", "Tây Ninh", "Tay Ninh",
+                "Long An", "Bến Tre", "Ben Tre", "Tiền Giang", "Tien Giang", "Kiên Giang", "Kien Giang"
+            }
+        };
+
+        var keywords = new List<string>();
+        foreach (var region in regions)
+        {
+            if (string.IsNullOrWhiteSpace(region))
+            {
+                continue;
+            }
+
+            if (regionKeywords.TryGetValue(region, out var regionItems))
+            {
+                keywords.AddRange(regionItems);
+            }
+            else
+            {
+                keywords.Add(region);
+            }
+        }
+
+        return keywords.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private static string? NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl))
+        {
+            return null;
+        }
+
+        if (imageUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+            || imageUrl.StartsWith("~", StringComparison.OrdinalIgnoreCase))
+        {
+            return imageUrl;
+        }
+
+        if (imageUrl.StartsWith("wwwroot/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/" + imageUrl.Substring("wwwroot/".Length).TrimStart('/');
+        }
+
+        if (imageUrl.StartsWith("/", StringComparison.OrdinalIgnoreCase))
+        {
+            return imageUrl.Replace("\\", "/");
+        }
+
+        if (imageUrl.StartsWith("images/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/" + imageUrl.TrimStart('/');
+        }
+
+        return "/images/" + imageUrl.TrimStart('/');
     }
 }

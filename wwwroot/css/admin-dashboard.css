@@ -36,6 +36,9 @@ body {
     display: flex;
     flex-direction: column;
     gap: 28px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
 }
 
 .brand-block {
@@ -291,12 +294,17 @@ body {
 }
 
 .admin-form input,
-.admin-form select {
+.admin-form select,
+.admin-form textarea {
     border: 1px solid var(--ink-200);
     border-radius: 12px;
     padding: 10px 12px;
     font-size: 0.95rem;
     background: #ffffff;
+}
+
+.admin-form textarea {
+    resize: vertical;
 }
 
 .password-wrap {
@@ -439,6 +447,22 @@ body {
 .table-actions {
     display: inline-flex;
     gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.table-actions .filter-inline {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.table-actions select {
+    border: 1px solid var(--ink-200);
+    background: var(--snow);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
 }
 
 .table-actions button {

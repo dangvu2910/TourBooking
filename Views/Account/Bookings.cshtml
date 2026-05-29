@@ -18,6 +18,7 @@
                 <a class="profile-link" asp-action="Profile">Thông tin cá nhân</a>
                 <a class="profile-link" asp-action="ChangePassword">Đổi mật khẩu</a>
                 <a class="profile-link active" asp-action="Bookings">Quản lý đặt chỗ</a>
+                <a class="profile-link" asp-action="Reviews">Đánh giá của tôi</a>
                 <button class="profile-link" type="button">Thông báo</button>
                 <button class="profile-link" type="button">Thanh toán</button>
             </nav>
@@ -64,7 +65,7 @@
                                 <div class="booking-thumb">
                                     @if (!string.IsNullOrWhiteSpace(booking.ImageUrl))
                                     {
-                                        <img src="@booking.ImageUrl" alt="@booking.TourName" />
+                                        <img src="@Url.Content(booking.ImageUrl)" alt="@booking.TourName" />
                                     }
                                     else
                                     {
@@ -84,6 +85,10 @@
                                     <span>Tổng thanh toán</span>
                                     <strong>@booking.TotalPrice.ToString("C0", vnd)</strong>
                                     <span class="status-pill @statusClass">@statusLabel</span>
+                                    @if (string.Equals(booking.Status, "Completed", StringComparison.OrdinalIgnoreCase) || booking.TravelDate.Date < DateTime.Today)
+                                    {
+                                        <a class="btn btn-sm btn-primary mt-3" asp-action="Reviews">Đánh giá tour</a>
+                                    }
                                 </div>
                             </article>
                         }
