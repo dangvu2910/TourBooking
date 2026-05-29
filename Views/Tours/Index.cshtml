@@ -15,6 +15,26 @@
     var maxRangeValue = 10000000;
     var vnd = CultureInfo.GetCultureInfo("vi-VN");
 
+    string TruncateDescription(string? text, int maxLength = 120)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var normalized = text.Trim();
+        normalized = System.Text.RegularExpressions.Regex.Replace(normalized, "(\\.\\s*){3,}|…", string.Empty);
+        normalized = System.Text.RegularExpressions.Regex.Replace(normalized, "\\s{2,}", " ").Trim();
+
+        if (normalized.Length <= maxLength)
+        {
+            return normalized;
+        }
+
+        var cut = normalized[..maxLength].TrimEnd();
+        return cut + "...";
+    }
+
     // GÁN ẢNH TĨNH TẠI ĐÂY (nếu bạn muốn):
     // Ví dụ: staticTourImage1 = "/images/tours/tour-1.jpg";
     string staticTourImage1 = "";
@@ -120,8 +140,8 @@
                                     }
                                 </div>
                                 <div class="tour-info">
-                                    <h3>@item.Name <span>★ 4.8</span></h3>
-                                    <p>@item.Description</p>
+                                    <h3><span class="tour-title">@item.Name</span><span>★ 4.8</span></h3>
+                                    <p>@TruncateDescription(item.Description)</p>
                                     <div class="tour-price">
                                         <small>BẮT ĐẦU TỪ</small>
                                         <strong>@item.Price.ToString("C0", vnd)</strong>
@@ -142,7 +162,7 @@
                                     <div class="image-placeholder">Để trống ảnh - bạn gán sau trong biến staticTourImage@(i + 1)</div>
                                 </div>
                                 <div class="tour-info">
-                                    <h3>Tên tour @(i + 1) <span>★ 0.0</span></h3>
+                                    <h3><span class="tour-title">Tên tour @(i + 1)</span><span>★ 0.0</span></h3>
                                     <p>Mô tả tour sẽ hiển thị tại đây.</p>
                                     <div class="tour-price">
                                         <small>BẮT ĐẦU TỪ</small>
