@@ -34,12 +34,6 @@ namespace Tourbooking.Controllers
             const int pageSize = 6;
 
             var toursQuery = _context.Tours.AsQueryable();
-            toursQuery = toursQuery.Where(t =>
-                !(
-                    (t.Name != null && (t.Name.Contains("Đà Lạt") || t.Name.Contains("Da Lat") || t.Name.Contains("Dalat")))
-                    ||
-                    (t.Location != null && (t.Location.Contains("Đà Lạt") || t.Location.Contains("Da Lat") || t.Location.Contains("Dalat")))
-                ));
 
             var selectedRegions = (regions ?? Array.Empty<string>())
                 .Where(r => !string.IsNullOrWhiteSpace(r))
@@ -110,11 +104,6 @@ namespace Tourbooking.Controllers
             var tour = await _context.Tours
                 .FirstOrDefaultAsync(m => m.TourId == id);
             if (tour == null)
-            {
-                return NotFound();
-            }
-
-            if (IsDalatTour(tour.Name, tour.Location))
             {
                 return NotFound();
             }
