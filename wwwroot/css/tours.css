@@ -178,7 +178,17 @@
     line-height: 1.2;
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: 10px;
+}
+
+.tour-title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .tour-info h3 span {
@@ -189,9 +199,15 @@
 
 .tour-info p {
     margin: 0;
-    min-height: 64px;
     color: var(--tour-muted);
     font-size: .93rem;
+    line-height: 1.5;
+    min-height: calc(1.5em * 2);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .tour-price {
@@ -288,3 +304,43 @@
         align-items: flex-start;
     }
 }
+
+/* No-results styles */
+.no-results {
+    background: #fff;
+    border: 1px solid #e6e9ef;
+    padding: 36px 28px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+    text-align: left;
+}
+.no-results h3 {
+    margin: 0 0 8px;
+    font-size: 1.6rem;
+    color: var(--tour-text);
+}
+.no-results p {
+    margin: 0 0 16px;
+    color: var(--tour-muted);
+}
+.no-results .actions {
+    display: flex;
+    gap: 12px;
+}
+.no-results .btn-outline {
+    border: 1px solid #d4d9e2;
+    background: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    color: #334155;
+}
+.no-results .btn-primary {
+    border: none;
+    background: var(--tour-primary);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+

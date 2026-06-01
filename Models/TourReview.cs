@@ -34,4 +34,5 @@ public class TourReview
     public Booking? Booking { get; set; }
     public Tour? Tour { get; set; }
     public ApplicationUser? User { get; set; }
+    public List<TourReviewVote> Votes { get; set; } = new();
 }
