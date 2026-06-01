@@ -46,6 +46,16 @@ body {
     gap: 6px;
 }
 
+.brand-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.brand-link:hover .brand-title,
+.brand-link:hover .brand-subtitle {
+    color: #ffffff;
+}
+
 .brand-title {
     font-family: "Playfair Display", "Times New Roman", serif;
     font-size: 1.3rem;
@@ -141,6 +151,105 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.notification-menu {
+    position: relative;
+}
+
+.notification-menu summary {
+    list-style: none;
+}
+
+.notification-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.notification-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification-icon {
+    font-size: 1rem;
+}
+
+.notification-badge {
+    background: var(--ocean);
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.notification-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 12px);
+    width: min(340px, 90vw);
+    background: var(--cloud);
+    border: 1px solid var(--ink-200);
+    border-radius: 16px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+    padding: 12px;
+    z-index: 10;
+}
+
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 4px 10px;
+    border-bottom: 1px solid var(--ink-200);
+    font-size: 0.9rem;
+}
+
+.notification-list {
+    display: grid;
+    gap: 12px;
+    padding: 10px 4px 4px;
+    max-height: 320px;
+    overflow: auto;
+}
+
+.notification-item {
+    display: grid;
+    grid-template-columns: 10px 1fr;
+    gap: 10px;
+    align-items: start;
+}
+
+.notification-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--ocean);
+    margin-top: 6px;
+}
+
+.notification-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.notification-desc {
+    color: var(--ink-700);
+    font-size: 0.82rem;
+    margin-top: 2px;
+}
+
+.notification-time {
+    color: var(--ink-500);
+    font-size: 0.74rem;
+    margin-top: 4px;
+}
+
+.notification-empty {
+    color: var(--ink-500);
+    font-size: 0.85rem;
+    padding: 10px 4px;
 }
 
 .admin-logout {
@@ -265,6 +374,91 @@ body {
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
     animation: rise 0.8s ease forwards;
+}
+
+.detail-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 15, 20, 0.48);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 200;
+}
+
+.detail-modal.is-open {
+    display: flex;
+}
+
+.detail-card {
+    width: min(760px, 92vw);
+    max-height: 85vh;
+    background: var(--cloud);
+    border-radius: 20px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--ink-200);
+}
+
+.detail-title {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.detail-body {
+    padding: 18px 20px 22px;
+    display: grid;
+    gap: 12px;
+    overflow: auto;
+}
+
+.detail-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 14px;
+    align-items: start;
+}
+
+.detail-label {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.7rem;
+    color: var(--ink-500);
+}
+
+.detail-value {
+    font-size: 0.92rem;
+    color: var(--ink-900);
+    font-weight: 600;
+    display: grid;
+    gap: 6px;
+}
+
+.detail-value.is-long {
+    font-weight: 500;
+    color: var(--ink-700);
+    line-height: 1.5;
+}
+
+.detail-line {
+    white-space: pre-wrap;
+}
+
+.detail-loading,
+.detail-error {
+    color: var(--ink-500);
+    font-size: 0.9rem;
 }
 
 .eyebrow {
@@ -610,6 +804,41 @@ body {
     padding: 14px 16px;
     text-align: left;
     border-bottom: 1px solid var(--ink-200);
+}
+
+.admin-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 240px;
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap;
+}
+
+.user-meta strong,
+.user-meta span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+    display: block;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: var(--ocean);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    flex-shrink: 0;
 }
 
 .admin-table tbody tr:hover {

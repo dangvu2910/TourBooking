@@ -1,0 +1,108 @@
+@model Tourbooking.ViewModels.AdminReviewsViewModel
+
+@{
+    ViewData["Title"] = "Đánh giá";
+    Layout = "_AdminLayout";
+    var searchQuery = ViewData["SearchQuery"] as string;
+}
+
+<section class="dashboard-hero">
+    <div>
+        <p class="eyebrow">Hệ thống quản trị</p>
+        <h1>Quản lý đánh giá</h1>
+        <p>Toàn bộ đánh giá của khách hàng về tour.</p>
+    </div>
+</section>
+
+<section class="panel-card">
+    <div class="table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Người đánh giá</th>
+                    <th>Tour</th>
+                    <th>Đánh giá</th>
+                    <th>Tiêu đề</th>
+                    <th>Nội dung</th>
+                    <th>Ngày</th>
+                    <th>Chi tiết</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Reviews.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="table-muted">Chưa có đánh giá nào.</td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var review in Model.Reviews)
+                    {
+                        var excerpt = review.Content.Length > 120
+                            ? review.Content.Substring(0, 120) + "..."
+                            : review.Content;
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">@review.ReviewerName.Substring(0, 1).ToUpperInvariant()</div>
+                                    <div class="user-meta">
+                                        <strong>@review.ReviewerName</strong>
+                                        @if (!string.IsNullOrWhiteSpace(review.ReviewerEmail))
+                                        {
+                                            <span class="table-muted">@review.ReviewerEmail</span>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@review.TourName</td>
+                            <td>
+                                <div class="rating-stars">@string.Concat(Enumerable.Repeat("★", review.Rating))</div>
+                            </td>
+                            <td>@review.Title</td>
+                            <td class="table-muted">@excerpt</td>
+                            <td>@review.CreatedDate</td>
+                            <td>
+                                <button type="button" class="icon-button detail-trigger" data-entity="review" data-id="@review.ReviewId" title="Xem chi tiết">👁</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        @{
+            var startIndex = Model.TotalReviews == 0 ? 0 : (Model.CurrentPage - 1) * Model.PageSize + 1;
+            var endIndex = Model.TotalReviews == 0 ? 0 : Model.CurrentPage * Model.PageSize;
+            if (endIndex > Model.TotalReviews)
+            {
+                endIndex = Model.TotalReviews;
+            }
+        }
+        <span>Hiển thị @startIndex-@endIndex của @Model.TotalReviews đánh giá</span>
+        <div class="pager">
+            @if (Model.CurrentPage > 1)
+            {
+                <a class="page-btn" asp-action="Reviews" asp-route-query="@searchQuery" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">‹</span>
+            }
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Reviews" asp-route-query="@searchQuery" asp-route-page="@i">@i</a>
+            }
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a class="page-btn" asp-action="Reviews" asp-route-query="@searchQuery" asp-route-page="@(Model.CurrentPage + 1)">›</a>
+            }
+            else
+            {
+                <span class="page-btn is-disabled">›</span>
+            }
+        </div>
+    </div>
+</section>

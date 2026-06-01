@@ -21,7 +21,7 @@
             <p>Tổng số tour</p>
             <h2>@Model.TotalTours</h2>
         </div>
-        <span class="stat-badge">+12%</span>
+        <span class="stat-badge">Doanh thu: @Model.TotalRevenue</span>
     </article>
     <article class="stat-card">
         <div class="stat-icon">BK</div>
@@ -29,7 +29,7 @@
             <p>Tổng số đặt chỗ</p>
             <h2>@Model.TotalBookings</h2>
         </div>
-        <span class="stat-badge">+24%</span>
+        <span class="stat-badge">@Model.ConfirmedBookings đã xác nhận</span>
     </article>
     <article class="stat-card">
         <div class="stat-icon">US</div>
@@ -37,7 +37,7 @@
             <p>Tổng số người dùng</p>
             <h2>@Model.TotalUsers</h2>
         </div>
-        <span class="stat-badge">+9%</span>
+        <span class="stat-badge">Mới 30 ngày: @Model.NewUsersLast30Days</span>
     </article>
 </section>
 
@@ -46,20 +46,32 @@
         <div class="panel-header">
             <div>
                 <h3>Xu hướng đặt chỗ</h3>
-                <p>Tổng quan theo tháng về các đặt chỗ đã xác nhận</p>
+                <p>Tổng quan theo tháng về số đặt chỗ</p>
             </div>
             <div class="segmented">
                 <button class="is-active" type="button">Theo tháng</button>
-                <button type="button">Theo tuần</button>
             </div>
         </div>
         <div class="chart-wrap">
-            <div class="bar" style="height: 48%"><span>Thg 1</span></div>
-            <div class="bar" style="height: 64%"><span>Thg 2</span></div>
-            <div class="bar" style="height: 54%"><span>Thg 3</span></div>
-            <div class="bar is-peak" style="height: 82%"><span>Thg 4</span></div>
-            <div class="bar" style="height: 58%"><span>Thg 5</span></div>
-            <div class="bar" style="height: 72%"><span>Thg 6</span></div>
+            @{
+                var maxCount = Model.BookingTrends.Count == 0
+                    ? 0
+                    : Model.BookingTrends.Max(t => t.Count);
+            }
+            @if (Model.BookingTrends.Count == 0)
+            {
+                <div class="empty-state">Chưa có dữ liệu đặt chỗ để hiển thị</div>
+            }
+            else
+            {
+                foreach (var point in Model.BookingTrends)
+                {
+                    var height = maxCount == 0 ? 0 : (int)Math.Round(point.Count * 100d / maxCount);
+                    <div class="bar @(point.Count == maxCount && maxCount > 0 ? "is-peak" : "")" style="height: @(height)%">
+                        <span>@point.Label</span>
+                    </div>
+                }
+            }
         </div>
     </article>
 
@@ -69,7 +81,6 @@
                 <h3>Hoạt động gần đây</h3>
                 <p>Cảnh báo và sự kiện mới nhất</p>
             </div>
-            <a class="panel-link" href="#">Xem tất cả nhật ký</a>
         </div>
         <div class="activity-list">
             @foreach (var activity in Model.RecentActivities)
@@ -92,7 +103,7 @@
             <h3>Tour hiệu quả nhất</h3>
             <p>Những tour có hiệu suất và độ quan tâm cao</p>
         </div>
-        <a class="panel-link" asp-controller="Tours" asp-action="Index">Quản lý tất cả</a>
+        <a class="panel-link" asp-controller="Admin" asp-action="Tours">Quản lý tất cả</a>
     </div>
 
     <div class="tour-cards">

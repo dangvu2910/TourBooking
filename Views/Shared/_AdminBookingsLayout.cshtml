@@ -2,6 +2,10 @@
     var pageTitle = ViewData["Title"] as string ?? "Quản trị";
     var currentController = (ViewContext.RouteData.Values["controller"] as string) ?? string.Empty;
     var currentAction = (ViewContext.RouteData.Values["action"] as string) ?? string.Empty;
+    var searchQuery = ViewData["SearchQuery"] as string ?? string.Empty;
+    var searchPlaceholder = ViewData["SearchPlaceholder"] as string ?? "Tìm kiếm";
+    var notifications = ViewData["Notifications"] as List<AdminNotificationItem> ?? new List<AdminNotificationItem>();
+    var notificationCount = ViewData["NotificationCount"] as int? ?? notifications.Count;
 }
 
 <!DOCTYPE html>
@@ -16,10 +20,10 @@
 <body>
     <div class="admin-shell">
         <aside class="admin-sidebar">
-            <div class="brand-block">
+            <a class="brand-block brand-link" asp-controller="Home" asp-action="Index">
                 <span class="brand-title">Quản trị Voyager</span>
                 <span class="brand-subtitle">Trung tâm điều phối</span>
-            </div>
+            </a>
 
             <nav class="admin-nav">
                 <a class="nav-link @(currentController == "Admin" && currentAction == "Dashboard" ? "is-active" : "")" href="/Admin/Dashboard">Bảng điều khiển</a>
@@ -36,13 +40,46 @@
 
         <div class="admin-main">
             <header class="admin-header">
-                <div class="search-wrap">
-                    <input type="text" placeholder="Tìm kiếm đặt chỗ, người dùng, điểm đến..." />
-                </div>
+                <form method="get" asp-controller="@currentController" asp-action="@currentAction" class="search-wrap">
+                    <input type="text" name="query" value="@searchQuery" placeholder="@searchPlaceholder" />
+                </form>
                 <div class="admin-actions">
-                    <span class="pill">Toàn cục</span>
-                    <span class="pill">Phân tích</span>
-                    <span class="pill is-active">Báo cáo</span>
+                    <details class="notification-menu">
+                        <summary class="ghost-action notification-trigger">
+                            <span class="notification-icon">🔔</span>
+                            <span>Thông báo</span>
+                            @if (notificationCount > 0)
+                            {
+                                <span class="notification-badge">@notificationCount</span>
+                            }
+                        </summary>
+                        <div class="notification-panel">
+                            <div class="notification-header">
+                                <strong>Thông báo</strong>
+                                <span>@notificationCount</span>
+                            </div>
+                            <div class="notification-list">
+                                @if (notifications.Count == 0)
+                                {
+                                    <div class="notification-empty">Chưa có thông báo mới.</div>
+                                }
+                                else
+                                {
+                                    foreach (var item in notifications)
+                                    {
+                                        <div class="notification-item">
+                                            <div class="notification-dot"></div>
+                                            <div>
+                                                <div class="notification-title">@item.Title</div>
+                                                <div class="notification-desc">@item.Description</div>
+                                                <div class="notification-time">@item.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </details>
                     <form asp-controller="Account" asp-action="Logout" method="post" class="admin-logout">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="ghost-action">Đăng xuất</button>

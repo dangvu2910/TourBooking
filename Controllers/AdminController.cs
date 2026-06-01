@@ -5,6 +5,7 @@ using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Tourbooking.Models;
 using Tourbooking.ViewModels;
@@ -24,42 +25,422 @@ public class AdminController : Controller
         _userManager = userManager;
     }
 
+    public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        var notifications = await BuildNotificationsAsync();
+        ViewData["Notifications"] = notifications;
+        ViewData["NotificationCount"] = notifications.Count;
+        await next();
+    }
+
     public async Task<IActionResult> Dashboard()
     {
-        var tours = await _context.Tours.AsNoTracking().ToListAsync();
+        var totalTours = await _context.Tours.AsNoTracking().CountAsync();
+        var totalBookings = await _context.Bookings.AsNoTracking().CountAsync();
+        var totalUsers = await _userManager.Users.AsNoTracking().CountAsync();
+        var confirmedBookings = await _context.Bookings.AsNoTracking()
+            .CountAsync(b => b.Status == "Confirmed");
+        var pendingBookings = await _context.Bookings.AsNoTracking()
+            .CountAsync(b => b.Status == "Pending" || b.Status == "PendingConfirmation" || b.Status == "Processing");
+        var newUsersLast30Days = await _userManager.Users.AsNoTracking()
+            .CountAsync(u => u.CreatedAt >= DateTime.UtcNow.AddDays(-30));
+        var totalRevenue = await _context.Bookings.AsNoTracking()
+            .Where(b => b.Status == "Confirmed")
+            .SumAsync(b => (decimal?)b.TotalPrice) ?? 0m;
+
+        var topTours = await _context.Tours.AsNoTracking()
+            .GroupJoin(_context.Bookings.AsNoTracking(),
+                tour => tour.TourId,
+                booking => booking.TourId,
+                (tour, bookings) => new
+                {
+                    Tour = tour,
+                    BookingCount = bookings.Count(),
+                    Revenue = bookings.Where(b => b.Status == "Confirmed")
+                        .Sum(b => (decimal?)b.TotalPrice) ?? 0m
+                })
+            .OrderByDescending(x => x.BookingCount)
+            .ThenByDescending(x => x.Revenue)
+            .Take(3)
+            .Select(x => new AdminTourCard
+            {
+                TourId = x.Tour.TourId,
+                Name = x.Tour.Name,
+                ImageUrl = NormalizeImageUrl(x.Tour.ImageUrl) ?? string.Empty,
+                Location = x.Tour.Location,
+                Metric = $"{x.BookingCount} đặt chỗ"
+            })
+            .ToListAsync();
+
+        var recentBookings = await _context.Bookings.AsNoTracking()
+            .Include(b => b.Tour)
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(3)
+            .ToListAsync();
+
+        var recentUsers = await _userManager.Users.AsNoTracking()
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(2)
+            .ToListAsync();
+
+        var activityItems = new List<(DateTime Stamp, AdminActivity Activity)>();
+        foreach (var booking in recentBookings)
+        {
+            var tourName = booking.Tour?.Name ?? "Tour";
+            activityItems.Add((booking.CreatedAt, new AdminActivity(
+                "Đặt chỗ mới",
+                $"{booking.FullName} - {tourName}")));
+        }
+
+        foreach (var user in recentUsers)
+        {
+            var displayName = string.IsNullOrWhiteSpace(user.FullName)
+                ? (user.UserName ?? user.Email ?? "Người dùng mới")
+                : user.FullName;
+            activityItems.Add((user.CreatedAt, new AdminActivity(
+                "Người dùng mới",
+                $"{displayName} vừa đăng ký")));
+        }
+
+        var recentActivities = activityItems
+            .OrderByDescending(x => x.Stamp)
+            .Select(x => x.Activity)
+            .Take(5)
+            .ToList();
+
+        var now = DateTime.UtcNow;
+        var startMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-5);
+        var bookingTrendsRaw = await _context.Bookings.AsNoTracking()
+            .Where(b => b.CreatedAt >= startMonth)
+            .GroupBy(b => new { b.CreatedAt.Year, b.CreatedAt.Month })
+            .Select(g => new { g.Key.Year, g.Key.Month, Count = g.Count() })
+            .ToListAsync();
+
+        var bookingTrends = new List<BookingTrendItem>();
+        for (var i = 0; i < 6; i++)
+        {
+            var point = startMonth.AddMonths(i);
+            var matched = bookingTrendsRaw.FirstOrDefault(b => b.Year == point.Year && b.Month == point.Month);
+            var label = $"Thg {point.Month}";
+            bookingTrends.Add(new BookingTrendItem(label, matched?.Count ?? 0));
+        }
 
         var model = new AdminDashboardViewModel
         {
-            TotalTours = tours.Count,
-            TotalBookings = 0,
-            TotalUsers = await _userManager.Users.CountAsync(),
-            TopTours = tours
-                .OrderByDescending(t => t.Price)
-                .Take(3)
-                .Select(t => new AdminTourCard
-                {
-                    TourId = t.TourId,
-                    Name = t.Name,
-                    ImageUrl = NormalizeImageUrl(t.ImageUrl) ?? string.Empty,
-                    Location = t.Location,
-                    Metric = t.Price.ToString("C0", VnCulture)
-                })
-                .ToList(),
-            RecentActivities = new List<AdminActivity>
-            {
-                new("Đặt chỗ mới được xác nhận", "Đang chờ mô đun đặt chỗ"),
-                new("Sự cố thanh toán", "Chưa kết nối cổng thanh toán"),
-                new("Người dùng mới đăng ký", "Đã kích hoạt đăng ký" )
-            }
+            TotalTours = totalTours,
+            TotalBookings = totalBookings,
+            TotalUsers = totalUsers,
+            ConfirmedBookings = confirmedBookings,
+            PendingBookings = pendingBookings,
+            NewUsersLast30Days = newUsersLast30Days,
+            TotalRevenue = totalRevenue.ToString("C0", VnCulture),
+            TopTours = topTours,
+            RecentActivities = recentActivities,
+            BookingTrends = bookingTrends
         };
 
         return View(model);
     }
 
-    public async Task<IActionResult> Tours(string? region, int page = 1)
+    private async Task<List<AdminNotificationItem>> BuildNotificationsAsync()
+    {
+        var items = new List<(DateTime Stamp, AdminNotificationItem Item)>();
+
+        var recentBookings = await _context.Bookings.AsNoTracking()
+            .Include(b => b.Tour)
+            .OrderByDescending(b => b.CreatedAt)
+            .Take(4)
+            .ToListAsync();
+
+        foreach (var booking in recentBookings)
+        {
+            var tourName = booking.Tour?.Name ?? "Tour";
+            items.Add((booking.CreatedAt, new AdminNotificationItem(
+                "Đặt chỗ mới",
+                $"{booking.FullName} - {tourName}",
+                booking.CreatedAt)));
+        }
+
+        var recentPayments = await _context.Payments.AsNoTracking()
+            .Include(p => p.Booking)
+            .OrderByDescending(p => p.CreatedAt)
+            .Take(3)
+            .ToListAsync();
+
+        foreach (var payment in recentPayments)
+        {
+            var customer = payment.Booking?.FullName ?? "Khách";
+            var amount = payment.Amount.ToString("C0", VnCulture);
+            items.Add((payment.CreatedAt, new AdminNotificationItem(
+                "Thanh toán",
+                $"{customer} - {amount} ({payment.Status})",
+                payment.CreatedAt)));
+        }
+
+        var recentReviews = await _context.TourReviews.AsNoTracking()
+            .Include(r => r.Tour)
+            .Include(r => r.User)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(3)
+            .ToListAsync();
+
+        foreach (var review in recentReviews)
+        {
+            var tourName = review.Tour?.Name ?? "Tour";
+            var reviewer = !string.IsNullOrWhiteSpace(review.User?.FullName)
+                ? review.User!.FullName!
+                : (review.User?.UserName ?? "Khách");
+            items.Add((review.CreatedAt, new AdminNotificationItem(
+                "Đánh giá mới",
+                $"{reviewer} - {tourName}",
+                review.CreatedAt)));
+        }
+
+        var recentUsers = await _userManager.Users.AsNoTracking()
+            .OrderByDescending(u => u.CreatedAt)
+            .Take(3)
+            .ToListAsync();
+
+        foreach (var user in recentUsers)
+        {
+            var displayName = !string.IsNullOrWhiteSpace(user.FullName)
+                ? user.FullName!
+                : (user.UserName ?? user.Email ?? "Người dùng mới");
+            items.Add((user.CreatedAt, new AdminNotificationItem(
+                "Người dùng mới",
+                $"{displayName} vừa đăng ký",
+                user.CreatedAt)));
+        }
+
+        return items
+            .OrderByDescending(x => x.Stamp)
+            .Select(x => x.Item)
+            .Take(8)
+            .ToList();
+    }
+
+    public async Task<IActionResult> Notifications()
+    {
+        var notifications = await BuildNotificationsAsync();
+        return View(notifications);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> TourDetail(int id)
+    {
+        var tour = await _context.Tours.AsNoTracking()
+            .FirstOrDefaultAsync(t => t.TourId == id);
+        if (tour == null)
+        {
+            return NotFound();
+        }
+
+        var bookingCount = await _context.Bookings.AsNoTracking()
+            .CountAsync(b => b.TourId == id);
+
+        var fields = new List<object>
+        {
+            new { label = "Mã tour", value = $"TR-{tour.TourId}" },
+            new { label = "Tên tour", value = tour.Name },
+            new { label = "Địa điểm", value = tour.Location },
+            new { label = "Giá", value = tour.Price.ToString("C0", VnCulture) },
+            new { label = "Số đặt chỗ", value = bookingCount.ToString(CultureInfo.InvariantCulture) },
+            new { label = "Danh mục", value = tour.CategoryId.ToString(CultureInfo.InvariantCulture) },
+            new { label = "Mô tả", value = string.IsNullOrWhiteSpace(tour.Description) ? "-" : tour.Description },
+            new { label = "Ảnh", value = NormalizeImageUrl(tour.ImageUrl) ?? "-" }
+        };
+
+        return Json(new { title = $"Tour TR-{tour.TourId}", fields });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> BookingDetail(int id)
+    {
+        var booking = await _context.Bookings.AsNoTracking()
+            .Include(b => b.Tour)
+            .Include(b => b.User)
+            .FirstOrDefaultAsync(b => b.BookingId == id);
+        if (booking == null)
+        {
+            return NotFound();
+        }
+
+        var payments = await _context.Payments.AsNoTracking()
+            .Where(p => p.BookingId == id)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+
+        var paymentLines = payments.Count == 0
+            ? new List<string> { "Chưa có thanh toán" }
+            : payments.Select(p =>
+                $"{p.Amount.ToString("C0", VnCulture)} • {p.Method} • {p.Status} • {(p.PaidAt.HasValue ? p.PaidAt.Value.ToLocalTime().ToString("g") : "Chưa thanh toán")}")
+                .ToList();
+
+        var fields = new List<object>
+        {
+            new { label = "Mã đặt chỗ", value = $"BK-{booking.BookingId}" },
+            new { label = "Khách hàng", value = booking.FullName },
+            new { label = "Email", value = booking.Email },
+            new { label = "Số điện thoại", value = booking.PhoneNumber },
+            new { label = "Tour", value = booking.Tour?.Name ?? "Tour" },
+            new { label = "Ngày đi", value = booking.TravelDate.ToLocalTime().ToString("dd/MM/yyyy") },
+            new { label = "Số khách", value = booking.GuestCount.ToString(CultureInfo.InvariantCulture) },
+            new { label = "Tổng giá", value = booking.TotalPrice.ToString("C0", VnCulture) },
+            new { label = "Trạng thái", value = booking.Status },
+            new { label = "Ngày tạo", value = booking.CreatedAt.ToLocalTime().ToString("g") },
+            new { label = "Thanh toán", value = string.Join("\n", paymentLines) }
+        };
+
+        return Json(new { title = $"Đặt chỗ BK-{booking.BookingId}", fields });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ReviewDetail(int id)
+    {
+        var review = await _context.TourReviews.AsNoTracking()
+            .Include(r => r.Tour)
+            .Include(r => r.User)
+            .FirstOrDefaultAsync(r => r.ReviewId == id);
+        if (review == null)
+        {
+            return NotFound();
+        }
+
+        var reviewer = !string.IsNullOrWhiteSpace(review.User?.FullName)
+            ? review.User!.FullName!
+            : (review.User?.UserName ?? review.User?.Email ?? "Khách");
+
+        var fields = new List<object>
+        {
+            new { label = "Mã đánh giá", value = $"RV-{review.ReviewId}" },
+            new { label = "Người đánh giá", value = reviewer },
+            new { label = "Email", value = review.User?.Email ?? string.Empty },
+            new { label = "Tour", value = review.Tour?.Name ?? "Tour" },
+            new { label = "Số sao", value = $"{review.Rating}/5" },
+            new { label = "Tiêu đề", value = review.Title },
+            new { label = "Nội dung", value = review.Content },
+            new { label = "Ngày tạo", value = review.CreatedAt.ToLocalTime().ToString("g") },
+            new { label = "Cập nhật", value = review.UpdatedAt.ToLocalTime().ToString("g") }
+        };
+
+        return Json(new { title = $"Đánh giá RV-{review.ReviewId}", fields });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> UserDetail(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return NotFound();
+        }
+
+        var user = await _userManager.Users.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var status = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow
+            ? "Tạm dừng"
+            : "Đang hoạt động";
+
+        var displayName = !string.IsNullOrWhiteSpace(user.FullName)
+            ? user.FullName!
+            : (user.UserName ?? user.Email ?? "Người dùng");
+
+        var fields = new List<object>
+        {
+            new { label = "Mã người dùng", value = user.Id },
+            new { label = "Tên", value = displayName },
+            new { label = "Email", value = user.Email ?? string.Empty },
+            new { label = "Số điện thoại", value = user.PhoneNumber ?? string.Empty },
+            new { label = "Địa chỉ", value = user.Address ?? string.Empty },
+            new { label = "Vai trò", value = roles.Count == 0 ? "User" : string.Join(", ", roles) },
+            new { label = "Trạng thái", value = status },
+            new { label = "Ngày tham gia", value = user.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy") }
+        };
+
+        return Json(new { title = $"Người dùng {displayName}", fields });
+    }
+
+    public async Task<IActionResult> Reviews(string? query, int page = 1)
+    {
+        const int pageSize = 10;
+        var reviewsQuery = _context.TourReviews
+            .AsNoTracking()
+            .Include(r => r.Tour)
+            .Include(r => r.User)
+            .OrderByDescending(r => r.CreatedAt)
+            .AsQueryable();
+
+        query = string.IsNullOrWhiteSpace(query) ? null : query.Trim();
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            reviewsQuery = reviewsQuery.Where(r =>
+                r.Title.Contains(query)
+                || r.Content.Contains(query)
+                || (r.Tour != null && r.Tour.Name.Contains(query))
+                || (r.User != null && r.User.FullName != null && r.User.FullName.Contains(query))
+                || (r.User != null && r.User.Email != null && r.User.Email.Contains(query))
+                || (r.User != null && r.User.UserName != null && r.User.UserName.Contains(query)));
+        }
+
+        var totalReviews = await reviewsQuery.CountAsync();
+        var totalPages = (int)Math.Ceiling(totalReviews / (double)pageSize);
+
+        if (totalPages == 0)
+        {
+            totalPages = 1;
+        }
+
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        if (page > totalPages)
+        {
+            page = totalPages;
+        }
+
+        var reviews = await reviewsQuery
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var rows = reviews.Select(r => new AdminReviewRow(
+            r.ReviewId,
+            r.User?.FullName ?? r.User?.UserName ?? r.User?.Email ?? "Khách",
+            r.User?.Email ?? string.Empty,
+            r.Tour?.Name ?? "Tour",
+            r.Rating,
+            r.Title,
+            r.Content,
+            r.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy"))).ToList();
+
+        ViewData["SearchQuery"] = query;
+        ViewData["SearchPlaceholder"] = "Tìm kiếm người đánh giá, tour, nội dung...";
+
+        var model = new AdminReviewsViewModel
+        {
+            TotalReviews = totalReviews,
+            CurrentPage = page,
+            TotalPages = totalPages,
+            PageSize = pageSize,
+            Reviews = rows
+        };
+
+        return View(model);
+    }
+
+    public async Task<IActionResult> Tours(string? region, string? query, int page = 1)
     {
         const int pageSize = 10;
         var toursQuery = _context.Tours.AsNoTracking();
+        query = string.IsNullOrWhiteSpace(query) ? null : query.Trim();
 
         if (!string.IsNullOrWhiteSpace(region))
         {
@@ -68,6 +449,11 @@ public class AdminController : Controller
             {
                 toursQuery = toursQuery.Where(t => keywords.Any(k => t.Location.Contains(k)));
             }
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            toursQuery = toursQuery.Where(t => t.Name.Contains(query) || t.Location.Contains(query));
         }
 
         var totalTours = await toursQuery.CountAsync();
@@ -98,6 +484,9 @@ public class AdminController : Controller
             .Where(l => !string.IsNullOrWhiteSpace(l))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Count();
+
+        ViewData["SearchQuery"] = query;
+        ViewData["SearchPlaceholder"] = "Tìm kiếm tour, địa điểm...";
 
         var model = new AdminToursViewModel
         {
@@ -171,7 +560,7 @@ public class AdminController : Controller
         return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
     }
 
-    public async Task<IActionResult> Bookings(string? status, int page = 1)
+    public async Task<IActionResult> Bookings(string? status, string? query, int page = 1)
     {
         const int pageSize = 10;
         var bookingsQuery = _context.Bookings
@@ -179,6 +568,7 @@ public class AdminController : Controller
             .Include(b => b.Tour)
             .OrderByDescending(b => b.CreatedAt)
             .AsQueryable();
+        query = string.IsNullOrWhiteSpace(query) ? null : query.Trim();
 
         if (!string.IsNullOrWhiteSpace(status))
         {
@@ -191,6 +581,14 @@ public class AdminController : Controller
             {
                 bookingsQuery = bookingsQuery.Where(b => b.Status == status);
             }
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            bookingsQuery = bookingsQuery.Where(b =>
+                b.FullName.Contains(query)
+                || b.Email.Contains(query)
+                || (b.Tour != null && b.Tour.Name.Contains(query)));
         }
 
         var totalBookings = await bookingsQuery.CountAsync();
@@ -229,6 +627,9 @@ public class AdminController : Controller
         var provinceCount = locations
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Count();
+
+        ViewData["SearchQuery"] = query;
+        ViewData["SearchPlaceholder"] = "Tìm kiếm khách, tour, email...";
 
         var model = new AdminBookingsViewModel
         {
@@ -339,10 +740,21 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Bookings));
     }
 
-    public async Task<IActionResult> Users(int page = 1)
+    public async Task<IActionResult> Users(string? query, int page = 1)
     {
         const int pageSize = 10;
-        var usersQuery = _userManager.Users.AsNoTracking().OrderBy(u => u.Email);
+        var usersQuery = _userManager.Users.AsNoTracking().AsQueryable();
+        query = string.IsNullOrWhiteSpace(query) ? null : query.Trim();
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            usersQuery = usersQuery.Where(u =>
+                (u.Email != null && u.Email.Contains(query))
+                || (u.UserName != null && u.UserName.Contains(query))
+                || (u.FullName != null && u.FullName.Contains(query)));
+        }
+
+        usersQuery = usersQuery.OrderBy(u => u.Email);
         var totalUsers = await usersQuery.CountAsync();
         var totalPages = (int)Math.Ceiling(totalUsers / (double)pageSize);
 
@@ -387,6 +799,9 @@ public class AdminController : Controller
                 joinedDate,
                 status));
         }
+
+        ViewData["SearchQuery"] = query;
+        ViewData["SearchPlaceholder"] = "Tìm kiếm người dùng, email...";
 
         var model = new AdminUsersViewModel
         {

@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Người dùng";
     Layout = "_AdminLayout";
+    var searchQuery = ViewData["SearchQuery"] as string;
 }
 
 <section class="dashboard-hero">
@@ -53,6 +54,7 @@
                         </td>
                         <td>
                             <div class="action-buttons">
+                                <button type="button" class="icon-button detail-trigger" data-entity="user" data-id="@user.Id" title="Xem chi tiết">👁</button>
                                 <a class="icon-button" asp-action="EditUser" asp-route-id="@user.Id" title="Chỉnh sửa">✎</a>
                                 <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" class="inline-form" onsubmit="return confirm('Bạn chắc chắn muốn xóa người dùng này?');">
                                     @Html.AntiForgeryToken()
@@ -79,7 +81,7 @@
         <div class="pager">
             @if (Model.CurrentPage > 1)
             {
-                <a class="page-btn" asp-action="Users" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
+                <a class="page-btn" asp-action="Users" asp-route-query="@searchQuery" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
             }
             else
             {
@@ -87,11 +89,11 @@
             }
             @for (var i = 1; i <= Model.TotalPages; i++)
             {
-                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Users" asp-route-page="@i">@i</a>
+                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Users" asp-route-query="@searchQuery" asp-route-page="@i">@i</a>
             }
             @if (Model.CurrentPage < Model.TotalPages)
             {
-                <a class="page-btn" asp-action="Users" asp-route-page="@(Model.CurrentPage + 1)">›</a>
+                <a class="page-btn" asp-action="Users" asp-route-query="@searchQuery" asp-route-page="@(Model.CurrentPage + 1)">›</a>
             }
             else
             {

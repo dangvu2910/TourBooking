@@ -340,6 +340,9 @@
 .deal-content h3 {
     font-size: 1.1rem;
     margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .deal-location {
@@ -437,6 +440,9 @@
 .top-choice-content h3 {
     margin-bottom: 6px;
     font-size: 1.05rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Contact section styles */

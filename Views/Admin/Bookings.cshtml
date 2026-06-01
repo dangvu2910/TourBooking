@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Đặt chỗ";
     Layout = "_AdminLayout";
+    var searchQuery = ViewData["SearchQuery"] as string;
 }
 
 @section Styles {
@@ -138,6 +139,10 @@
         </div>
         <div class="table-actions">
                 <form method="get" asp-action="Bookings" asp-controller="Admin" class="filter-inline">
+                    @if (!string.IsNullOrWhiteSpace(searchQuery))
+                    {
+                        <input type="hidden" name="query" value="@searchQuery" />
+                    }
                     <select name="status" aria-label="Lọc theo trạng thái">
                         <option value="">Tất cả trạng thái</option>
                         @foreach (var status in Model.Statuses)
@@ -165,6 +170,7 @@
                     <th>Số lượng</th>
                     <th>Tổng giá</th>
                     <th>Trạng thái</th>
+                    <th>Chi tiết</th>
                 </tr>
             </thead>
             <tbody>
@@ -205,6 +211,9 @@
                                 <button type="submit" class="ghost-action">Lưu</button>
                             </form>
                         </td>
+                            <td>
+                                <button type="button" class="icon-button detail-trigger" data-entity="booking" data-id="@booking.BookingId" title="Xem chi tiết">👁</button>
+                            </td>
                     </tr>
                 }
             </tbody>
@@ -224,7 +233,7 @@
         <div class="pager">
             @if (Model.CurrentPage > 1)
             {
-                <a class="page-btn" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
+                <a class="page-btn" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-query="@searchQuery" asp-route-page="@(Model.CurrentPage - 1)">‹</a>
             }
             else
             {
@@ -232,11 +241,11 @@
             }
             @for (var i = 1; i <= Model.TotalPages; i++)
             {
-                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-page="@i">@i</a>
+                <a class="page-btn @(i == Model.CurrentPage ? "is-active" : "")" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-query="@searchQuery" asp-route-page="@i">@i</a>
             }
             @if (Model.CurrentPage < Model.TotalPages)
             {
-                <a class="page-btn" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-page="@(Model.CurrentPage + 1)">›</a>
+                <a class="page-btn" asp-action="Bookings" asp-route-status="@Model.SelectedStatus" asp-route-query="@searchQuery" asp-route-page="@(Model.CurrentPage + 1)">›</a>
             }
             else
             {

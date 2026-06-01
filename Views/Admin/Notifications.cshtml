@@ -1,0 +1,36 @@
+@model List<Tourbooking.ViewModels.AdminNotificationItem>
+
+@{
+    ViewData["Title"] = "Thông báo";
+    Layout = "_AdminLayout";
+}
+
+<section class="panel-card">
+    <div class="panel-header">
+        <div>
+            <h3>Toàn bộ thông báo</h3>
+            <p>Các cảnh báo và sự kiện gần đây</p>
+        </div>
+        <a class="panel-link" asp-controller="Admin" asp-action="Dashboard">Quay lại</a>
+    </div>
+
+    <div class="notification-list">
+        @if (Model == null || !Model.Any())
+        {
+            <div class="empty-state">Không có thông báo nào.</div>
+        }
+        else
+        {
+            foreach (var item in Model)
+            {
+                <div class="notification-item">
+                    <div class="notification-meta">
+                        <strong>@item.Title</strong>
+                        <span class="notification-time">@item.CreatedAt.ToLocalTime().ToString("g")</span>
+                    </div>
+                    <div class="notification-body">@item.Description</div>
+                </div>
+            }
+        }
+    </div>
+</section>
