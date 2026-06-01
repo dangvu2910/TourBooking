@@ -37,6 +37,18 @@ public class Booking
     [StringLength(30)]
     public string Status { get; set; } = "Pending";
 
+    public DateTime? CancelledAt { get; set; }
+
+    [StringLength(500)]
+    public string? CancelReason { get; set; }
+
+    public DateTime? OriginalTravelDate { get; set; }
+
+    public DateTime? RescheduledAt { get; set; }
+
+    [StringLength(500)]
+    public string? RescheduleNote { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public Tour? Tour { get; set; }

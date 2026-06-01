@@ -74,7 +74,6 @@
                 </div>
             </div>
             <div class="tour-price-card">
-                <span>BẮT ĐẦU TỪ</span>
                 <strong>@price.ToString("C0", vnd)</strong>
                 <small>/ người</small>
             </div>
@@ -205,28 +204,7 @@
 
         <aside class="tour-right">
             <div class="tour-booking">
-                <h3>Chọn ngày khởi hành</h3>
-                <div class="booking-field">
-                    <span>Ngày đi</span>
-                    <div class="booking-input">24/10/2024</div>
-                </div>
-                <div class="booking-field">
-                    <span>Số khách</span>
-                    <div class="booking-input">2 người</div>
-                </div>
-                <div class="booking-total">
-                    <span>Tổng giá</span>
-                    <strong>@((price * 2).ToString("C0", vnd))</strong>
-                </div>
-                @if (User?.Identity?.IsAuthenticated == true)
-                {
-                    <a class="book-button" asp-controller="Home" asp-action="Booking" asp-route-tourId="@Model?.TourId">Đặt ngay</a>
-                }
-                else
-                {
-                    <a class="book-button" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Booking", "Home", new { tourId = Model?.TourId })">Đăng nhập để đặt</a>
-                }
-                <p class="booking-note">Xác nhận nhanh, không phí phát sinh.</p>
+                <a class="book-button" asp-controller="Home" asp-action="Booking" asp-route-tourId="@Model?.TourId">Đặt ngay</a>
             </div>
 
             <div class="tour-guarantees tour-review-rail">

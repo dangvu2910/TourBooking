@@ -271,12 +271,18 @@ namespace Tourbooking.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Bookings()
+        public async Task<IActionResult> Bookings(string? tab)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
                 return RedirectToAction(nameof(Login));
+            }
+
+            var normalizedTab = string.IsNullOrWhiteSpace(tab) ? "all" : tab.Trim().ToLowerInvariant();
+            if (normalizedTab is not ("all" or "upcoming" or "completed" or "cancelled"))
+            {
+                normalizedTab = "all";
             }
 
             var bookings = await _context.Bookings
@@ -285,24 +291,190 @@ namespace Tourbooking.Controllers
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
 
+            var today = DateTime.Today;
+            var minAllowedDateIso = today.AddDays(1).ToString("yyyy-MM-dd");
+
+            var filteredBookings = normalizedTab switch
+            {
+                "upcoming" => bookings.Where(b => b.TravelDate.Date >= today
+                                                  && !string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
+                "completed" => bookings.Where(b => b.TravelDate.Date < today
+                                                   && !string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
+                "cancelled" => bookings.Where(b => string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
+                _ => bookings
+            };
+
             var model = new AccountBookingsViewModel
             {
+                CurrentTab = normalizedTab,
                 TotalBookings = bookings.Count,
                 UpcomingBookings = bookings.Count(b => b.TravelDate.Date >= DateTime.Today && !string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
                 CompletedBookings = bookings.Count(b => b.TravelDate.Date < DateTime.Today && !string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
                 CancelledBookings = bookings.Count(b => string.Equals(b.Status, "Cancelled", StringComparison.OrdinalIgnoreCase)),
-                Bookings = bookings.Select(b => new AccountBookingRow(
+                Bookings = filteredBookings.Select(b => new AccountBookingRow(
                     b.BookingId,
                     b.Tour?.Name ?? "Tour",
                     b.Tour?.Location ?? string.Empty,
                     ResolveTourImageUrl(b.Tour?.ImageUrl, b.Tour?.Location, b.Tour?.Name),
                     b.TravelDate,
+                    b.OriginalTravelDate,
+                    b.RescheduledAt,
+                    b.RescheduleNote,
                     b.GuestCount,
                     b.TotalPrice,
-                    b.Status)).ToList()
+                    b.Status,
+                    b.CancelledAt,
+                    b.CancelReason,
+                    CanCustomerReschedule(b, today),
+                    CanCustomerCancel(b, today),
+                    minAllowedDateIso)).ToList()
             };
 
             return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelBooking(int bookingId, string reason)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.UserId == user.Id);
+
+            if (booking == null)
+            {
+                TempData["BookingError"] = "Không tìm thấy booking cần hủy.";
+                return RedirectToAction(nameof(Bookings));
+            }
+
+            if (!CanCustomerCancel(booking, DateTime.Today))
+            {
+                TempData["BookingError"] = "Booking này không thể hủy (đã quá ngày đi hoặc đã bị hủy).";
+                return RedirectToAction(nameof(Bookings));
+            }
+
+            if (string.IsNullOrWhiteSpace(reason))
+            {
+                TempData["BookingError"] = "Vui lòng nhập lý do hủy.";
+                return RedirectToAction(nameof(Bookings));
+            }
+
+            booking.Status = "Cancelled";
+            booking.CancelledAt = DateTime.UtcNow;
+            booking.CancelReason = reason.Trim();
+
+            var payments = await _context.Payments
+                .Where(p => p.BookingId == booking.BookingId)
+                .ToListAsync();
+
+            foreach (var payment in payments)
+            {
+                payment.Status = "Cancelled";
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["BookingSuccess"] = "Đã hủy booking của bạn.";
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RescheduleBooking(int bookingId, DateTime newTravelDate, string? note)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.UserId == user.Id);
+
+            if (booking == null)
+            {
+                TempData["BookingError"] = "Không tìm thấy booking cần đổi lịch.";
+                return RedirectToAction(nameof(Bookings));
+            }
+
+            if (!CanCustomerReschedule(booking, DateTime.Today))
+            {
+                TempData["BookingError"] = "Booking này không thể đổi lịch (đã quá ngày đi hoặc đã bị hủy).";
+                return RedirectToAction(nameof(Bookings));
+            }
+
+            var normalizedDate = newTravelDate.Date;
+            if (normalizedDate < DateTime.Today.AddDays(1))
+            {
+                TempData["BookingError"] = "Ngày đi mới phải từ ngày mai trở đi.";
+                return RedirectToAction(nameof(Bookings));
+            }
+
+            if (normalizedDate == booking.TravelDate.Date)
+            {
+                TempData["BookingError"] = "Ngày đi mới phải khác ngày đi hiện tại.";
+                return RedirectToAction(nameof(Bookings));
+            }
+
+            booking.OriginalTravelDate ??= booking.TravelDate;
+            booking.TravelDate = normalizedDate;
+            booking.RescheduledAt = DateTime.UtcNow;
+            booking.RescheduleNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+
+            if (string.Equals(booking.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+            {
+                booking.Status = "PendingConfirmation";
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["BookingSuccess"] = "Đã gửi yêu cầu đổi lịch. Vui lòng chờ xác nhận.";
+            return RedirectToAction(nameof(Bookings));
+        }
+
+        private static bool CanCustomerCancel(Booking booking, DateTime today)
+        {
+            if (string.Equals(booking.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (booking.TravelDate.Date < today)
+            {
+                return false;
+            }
+
+            if (string.Equals(booking.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+            {
+                return booking.TravelDate.Date >= today.AddDays(1);
+            }
+
+            return true;
+        }
+
+        private static bool CanCustomerReschedule(Booking booking, DateTime today)
+        {
+            if (string.Equals(booking.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (booking.TravelDate.Date < today)
+            {
+                return false;
+            }
+
+            if (string.Equals(booking.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+            {
+                return booking.TravelDate.Date >= today.AddDays(1);
+            }
+
+            return true;
         }
 
         [Authorize]

@@ -1,0 +1,81 @@
+@model Tourbooking.ViewModels.AdminContactsViewModel
+
+@{
+    ViewData["Title"] = "Liên hệ";
+    Layout = "_AdminLayout";
+}
+
+<section class="dashboard-hero">
+    <div>
+        <h1>Yêu cầu liên hệ</h1>
+        <p>Theo dõi các ticket tư vấn và phản hồi trực tiếp cho khách hàng.</p>
+    </div>
+    <div class="status-chip">@Model.Contacts.Count yêu cầu</div>
+</section>
+
+@if (TempData["ContactReplyMessage"] is string msg && !string.IsNullOrWhiteSpace(msg))
+{
+    <div class="alert alert-success">@msg</div>
+}
+
+<section class="panel-card top-tours">
+    <div class="panel-header">
+        <div>
+            <h3>Danh sách liên hệ</h3>
+            <p>Phản hồi xong sẽ hiển thị trạng thái “Đã phản hồi” ở trang liên hệ của khách.</p>
+        </div>
+        <div class="segmented">
+            <a class="@(string.IsNullOrWhiteSpace(Model.SelectedStatus) ? "is-active" : "")" href="/Admin/Contacts">Tất cả</a>
+            <a class="@(Model.SelectedStatus == "Pending" ? "is-active" : "")" href="/Admin/Contacts?status=Pending">Chờ trả lời</a>
+            <a class="@(Model.SelectedStatus == "Replied" ? "is-active" : "")" href="/Admin/Contacts?status=Replied">Đã trả lời</a>
+        </div>
+    </div>
+
+    <div class="vstack gap-3">
+        @if (Model.Contacts.Any())
+        {
+            foreach (var contact in Model.Contacts)
+            {
+                var statusLabel = contact.Status.Equals("Replied", StringComparison.OrdinalIgnoreCase) ? "Đã trả lời" : "Chờ phản hồi";
+                var statusClass = contact.Status.Equals("Replied", StringComparison.OrdinalIgnoreCase) ? "success" : "warning";
+
+                <article class="border rounded-3 p-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <h4 class="h6 mb-1">@contact.Subject</h4>
+                            <div class="small text-muted">@contact.FullName • @contact.Email • @contact.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                        <span class="badge bg-@statusClass">@statusLabel</span>
+                    </div>
+
+                    <p class="mb-3">@contact.Message</p>
+
+                    @if (!string.IsNullOrWhiteSpace(contact.AdminReply))
+                    {
+                        <div class="alert alert-light border mb-3">
+                            <strong>Phản hồi đã gửi</strong>
+                            <div class="mt-2">@contact.AdminReply</div>
+                            @if (contact.RepliedAt.HasValue)
+                            {
+                                <div class="small text-muted mt-2">@contact.RepliedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
+                            }
+                        </div>
+                    }
+
+                    <form asp-action="ReplyContact" method="post" class="vstack gap-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="contactInquiryId" value="@contact.ContactInquiryId" />
+                        <textarea class="form-control" name="adminReply" rows="3" placeholder="Nhập phản hồi cho khách hàng...">@contact.AdminReply</textarea>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">Gửi phản hồi</button>
+                        </div>
+                    </form>
+                </article>
+            }
+        }
+        else
+        {
+            <div class="text-muted">Chưa có yêu cầu liên hệ nào.</div>
+        }
+    </div>
+</section>

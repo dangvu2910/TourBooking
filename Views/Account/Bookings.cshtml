@@ -39,12 +39,16 @@
                         {
                             <p class="text-success mt-2">@bookingSuccess</p>
                         }
+                        @if (TempData["BookingError"] is string bookingError)
+                        {
+                            <p class="text-danger mt-2">@bookingError</p>
+                        }
                     </div>
                     <div class="bookings-tabs">
-                        <span class="bookings-tab active">Tất cả (@Model.TotalBookings)</span>
-                        <span class="bookings-tab">Sắp tới (@Model.UpcomingBookings)</span>
-                        <span class="bookings-tab">Đã hoàn thành (@Model.CompletedBookings)</span>
-                        <span class="bookings-tab">Đã hủy (@Model.CancelledBookings)</span>
+                        <a class="bookings-tab @(Model.CurrentTab == "all" ? "active" : "")" asp-action="Bookings" asp-route-tab="all">Tất cả (@Model.TotalBookings)</a>
+                        <a class="bookings-tab @(Model.CurrentTab == "upcoming" ? "active" : "")" asp-action="Bookings" asp-route-tab="upcoming">Sắp tới (@Model.UpcomingBookings)</a>
+                        <a class="bookings-tab @(Model.CurrentTab == "completed" ? "active" : "")" asp-action="Bookings" asp-route-tab="completed">Đã hoàn thành (@Model.CompletedBookings)</a>
+                        <a class="bookings-tab @(Model.CurrentTab == "cancelled" ? "active" : "")" asp-action="Bookings" asp-route-tab="cancelled">Đã hủy (@Model.CancelledBookings)</a>
                     </div>
                 </div>
 
@@ -53,7 +57,12 @@
                     {
                         foreach (var booking in Model.Bookings)
                         {
-                            var statusClass = booking.Status.ToLowerInvariant();
+                            var statusClass = booking.Status switch
+                            {
+                                "Confirmed" => "confirmed",
+                                "Cancelled" => "cancelled",
+                                _ => "pending"
+                            };
                             var statusLabel = booking.Status switch
                             {
                                 "Confirmed" => "Đã xác nhận",
@@ -85,6 +94,56 @@
                                     <span>Tổng thanh toán</span>
                                     <strong>@booking.TotalPrice.ToString("C0", vnd)</strong>
                                     <span class="status-pill @statusClass">@statusLabel</span>
+
+                                    @if (booking.OriginalTravelDate.HasValue)
+                                    {
+                                        <p class="booking-note">Đổi lịch từ @booking.OriginalTravelDate.Value.ToString("dd/MM/yyyy")</p>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(booking.RescheduleNote))
+                                    {
+                                        <p class="booking-note">Ghi chú: @booking.RescheduleNote</p>
+                                    }
+                                    @if (booking.CancelledAt.HasValue && !string.IsNullOrWhiteSpace(booking.CancelReason))
+                                    {
+                                        <p class="booking-note">Lý do hủy: @booking.CancelReason</p>
+                                    }
+
+                                    @if (booking.CanReschedule)
+                                    {
+                                        <details class="booking-action-toggle">
+                                            <summary class="btn btn-outline">Đổi lịch</summary>
+                                            <form asp-action="RescheduleBooking" method="post" class="booking-action">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="bookingId" value="@booking.BookingId" />
+                                                <label class="booking-action-label">
+                                                    Ngày đi mới
+                                                    <input class="form-control" type="date" name="newTravelDate" min="@booking.MinAllowedDateIso" required />
+                                                </label>
+                                                <label class="booking-action-label">
+                                                    Ghi chú (tuỳ chọn)
+                                                    <input class="form-control" type="text" name="note" maxlength="500" />
+                                                </label>
+                                                <button type="submit" class="btn btn-outline">Gửi yêu cầu</button>
+                                            </form>
+                                        </details>
+                                    }
+
+                                    @if (booking.CanCancel)
+                                    {
+                                        <details class="booking-action-toggle">
+                                            <summary class="btn btn-outline">Hủy</summary>
+                                            <form asp-action="CancelBooking" method="post" class="booking-action">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="bookingId" value="@booking.BookingId" />
+                                                <label class="booking-action-label">
+                                                    Lý do hủy
+                                                    <input class="form-control" type="text" name="reason" maxlength="500" required />
+                                                </label>
+                                                <button type="submit" class="btn btn-outline">Xác nhận hủy</button>
+                                            </form>
+                                        </details>
+                                    }
+
                                     @if (string.Equals(booking.Status, "Completed", StringComparison.OrdinalIgnoreCase) || booking.TravelDate.Date < DateTime.Today)
                                     {
                                         <a class="btn btn-sm btn-primary mt-3" asp-action="Reviews">Đánh giá tour</a>

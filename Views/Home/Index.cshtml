@@ -18,6 +18,29 @@
         _ => "-8%"
     };
 
+    decimal GetOriginalPrice(decimal discountedPrice, string? discountLabel)
+    {
+        if (discountedPrice <= 0)
+        {
+            return discountedPrice;
+        }
+
+        var label = (discountLabel ?? string.Empty).Trim();
+        label = label.TrimStart('-').TrimEnd('%');
+
+        if (!int.TryParse(label, out var percent) || percent <= 0 || percent >= 100)
+        {
+            return discountedPrice;
+        }
+
+        var rate = percent / 100m;
+        var original = discountedPrice / (1m - rate);
+
+        // Round to nearest 1,000 VND for nicer display.
+        var rounded = Math.Round(original / 1000m, 0, MidpointRounding.AwayFromZero) * 1000m;
+        return rounded;
+    }
+
     string GetHeroTag(int index) => index switch
     {
         0 => "Tour uy tín hàng đầu",
@@ -56,7 +79,10 @@
                         <span class="hero-tag">@GetHeroTag(i)</span>
                         <h1>@slide.Name</h1>
                         <p class="hero-price">Giá chỉ từ: <strong>@slide.Price.ToString("C0", vnd)</strong></p>
-                        <p class="hero-desc">@slide.Description</p>
+                        <div class="hero-desc-wrap">
+                            <p class="hero-desc is-clamped">@slide.Description</p>
+                            <button class="hero-desc-more" type="button" hidden aria-expanded="false">Xem thêm</button>
+                        </div>
                         <div class="hero-actions">
                             <a class="btn-hero primary" asp-controller="Tours" asp-action="Details" asp-route-id="@slide.TourId">Đặt ngay →</a>
                             <a class="btn-hero dark hero-contact-cta" asp-controller="Home" asp-action="Contact">Liên hệ tư vấn</a>
@@ -76,8 +102,6 @@
         <div class="hero-search">
             <form class="search-bar" asp-controller="Tours" asp-action="Index" method="get">
                 <input type="text" name="query" placeholder="Tìm kiếm tour, địa điểm..." />
-                <input type="number" name="guests" placeholder="Số người" min="1" step="1" />
-                <input type="number" name="maxPrice" placeholder="Giá tối đa" min="0" step="100" />
                 <button type="submit">Tìm kiếm</button>
             </form>
         </div>
@@ -97,16 +121,24 @@
                 {
                     var deal = dealsToday[i];
                     var dealImage = NormalizeImageUrl(deal.ImageUrl);
+                    var discountLabel = GetDiscount(i);
+                    var originalPrice = GetOriginalPrice(deal.Price, discountLabel);
                     <article class="deal-card">
                         <a class="deal-image" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">
                             <img src="@dealImage" alt="@deal.Name" />
-                            <span class="deal-badge">@GetDiscount(i)</span>
+                            <span class="deal-badge">@discountLabel</span>
                         </a>
                         <div class="deal-content">
                             <h3>@deal.Name</h3>
                             <p class="deal-location">@deal.Location</p>
                             <div class="deal-meta">
-                                <span class="price">@deal.Price.ToString("C0", vnd)</span>
+                                <div class="deal-prices">
+                                    @if (originalPrice > deal.Price)
+                                    {
+                                        <span class="price old">@originalPrice.ToString("C0", vnd)</span>
+                                    }
+                                    <span class="price new">@deal.Price.ToString("C0", vnd)</span>
+                                </div>
                                 <a class="deal-link" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">Đặt tour →</a>
                             </div>
                         </div>
@@ -129,16 +161,24 @@
                 {
                     var deal = monthlyDeals[i];
                     var dealImage = NormalizeImageUrl(deal.ImageUrl);
+                    var discountLabel = GetDiscount(i);
+                    var originalPrice = GetOriginalPrice(deal.Price, discountLabel);
                     <article class="deal-card compact">
                         <a class="deal-image" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">
                             <img src="@dealImage" alt="@deal.Name" />
-                            <span class="deal-badge">@GetDiscount(i)</span>
+                            <span class="deal-badge">@discountLabel</span>
                         </a>
                         <div class="deal-content">
                             <h3>@deal.Name</h3>
                             <p class="deal-location">@deal.Location</p>
                             <div class="deal-meta">
-                                <span class="price">@deal.Price.ToString("C0", vnd)</span>
+                                <div class="deal-prices">
+                                    @if (originalPrice > deal.Price)
+                                    {
+                                        <span class="price old">@originalPrice.ToString("C0", vnd)</span>
+                                    }
+                                    <span class="price new">@deal.Price.ToString("C0", vnd)</span>
+                                </div>
                                 <a class="deal-link" asp-controller="Tours" asp-action="Details" asp-route-id="@deal.TourId">Xem chi tiết →</a>
                             </div>
                         </div>
@@ -227,6 +267,41 @@
             var current = 0;
             var timerId;
 
+            var updateHeroDesc = function (slide) {
+                if (!slide) {
+                    return;
+                }
+
+                var desc = slide.querySelector(".hero-desc");
+                var more = slide.querySelector(".hero-desc-more");
+                if (!desc || !more) {
+                    return;
+                }
+
+                desc.classList.add("is-clamped");
+                more.hidden = true;
+                more.setAttribute("aria-expanded", "false");
+
+                window.requestAnimationFrame(function () {
+                    var overflows = desc.scrollHeight > desc.clientHeight + 1;
+                    more.hidden = !overflows;
+                });
+            };
+
+            slides.forEach(function (slide) {
+                var desc = slide.querySelector(".hero-desc");
+                var more = slide.querySelector(".hero-desc-more");
+                if (!desc || !more) {
+                    return;
+                }
+
+                more.addEventListener("click", function () {
+                    desc.classList.remove("is-clamped");
+                    more.hidden = true;
+                    more.setAttribute("aria-expanded", "true");
+                });
+            });
+
             var setActive = function (index) {
                 slides.forEach(function (slide, idx) {
                     slide.classList.toggle("is-active", idx === index);
@@ -235,6 +310,8 @@
                     dot.classList.toggle("is-active", idx === index);
                 });
                 current = index;
+
+                updateHeroDesc(slides[index]);
             };
 
             var step = function (dir) {
@@ -268,6 +345,7 @@
                 });
             });
 
+            setActive(0);
             restartTimer();
         })();
     </script>

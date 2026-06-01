@@ -12,11 +12,13 @@ namespace Tourbooking.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IConfiguration _configuration;
 
-        public HomeController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public HomeController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IConfiguration configuration)
         {
             _context = context;
             _userManager = userManager;
+            _configuration = configuration;
         }
 
         public async Task<IActionResult> Index()
@@ -83,9 +85,43 @@ namespace Tourbooking.Controllers
         }
 
         [HttpGet]
-        public IActionResult Contact()
+        public async Task<IActionResult> Contact()
         {
-            return View(new ContactViewModel());
+            var user = await _userManager.GetUserAsync(User);
+            var lookupEmail = !string.IsNullOrWhiteSpace(user?.Email) ? user!.Email : null;
+
+            var ticketsQuery = _context.ContactInquiries.AsNoTracking().AsQueryable();
+            if (!string.IsNullOrWhiteSpace(lookupEmail))
+            {
+                ticketsQuery = ticketsQuery.Where(c => c.Email == lookupEmail);
+            }
+
+            var model = new ContactPageViewModel
+            {
+                LookupEmail = lookupEmail,
+                Form = new ContactViewModel
+                {
+                    FullName = user?.FullName ?? string.Empty,
+                    Email = lookupEmail ?? string.Empty
+                },
+                Tickets = await ticketsQuery
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Select(c => new ContactInquiryRow
+                    {
+                        ContactInquiryId = c.ContactInquiryId,
+                        FullName = c.FullName,
+                        Email = c.Email,
+                        Subject = c.Subject,
+                        Message = c.Message,
+                        Status = c.Status,
+                        AdminReply = c.AdminReply,
+                        CreatedAt = c.CreatedAt,
+                        RepliedAt = c.RepliedAt
+                    })
+                    .ToListAsync()
+            };
+
+            return View(model);
         }
 
         [HttpPost]
@@ -94,12 +130,127 @@ namespace Tourbooking.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                var invalidPageModel = await BuildContactPageViewModelAsync(model);
+                return View(invalidPageModel);
             }
 
-            // For now we just show a confirmation message. Integration with email or storage can be added later.
-            TempData["ContactMessage"] = "Cảm ơn bạn đã liên hệ. Chúng tôi sẽ liên hệ lại sớm nhất có thể.";
+            var user = await _userManager.GetUserAsync(User);
+            var ticket = new ContactInquiry
+            {
+                FullName = model.FullName.Trim(),
+                Email = model.Email.Trim(),
+                PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim(),
+                Subject = model.Subject.Trim(),
+                Message = model.Message.Trim(),
+                UserId = user?.Id,
+                Status = "Pending"
+            };
+
+            _context.ContactInquiries.Add(ticket);
+            await _context.SaveChangesAsync();
+
+            TempData["ContactMessage"] = "Yêu cầu của bạn đã được gửi. Khi admin trả lời, trạng thái sẽ hiển thị ngay tại đây.";
             return RedirectToAction("Contact");
+        }
+
+        private async Task<ContactPageViewModel> BuildContactPageViewModelAsync(ContactViewModel form)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var lookupEmail = !string.IsNullOrWhiteSpace(form.Email)
+                ? form.Email.Trim()
+                : user?.Email;
+
+            var ticketsQuery = _context.ContactInquiries.AsNoTracking().AsQueryable();
+            if (!string.IsNullOrWhiteSpace(lookupEmail))
+            {
+                ticketsQuery = ticketsQuery.Where(c => c.Email == lookupEmail);
+            }
+
+            return new ContactPageViewModel
+            {
+                LookupEmail = lookupEmail,
+                Form = form,
+                Tickets = await ticketsQuery
+                    .OrderByDescending(c => c.CreatedAt)
+                    .Select(c => new ContactInquiryRow
+                    {
+                        ContactInquiryId = c.ContactInquiryId,
+                        FullName = c.FullName,
+                        Email = c.Email,
+                        Subject = c.Subject,
+                        Message = c.Message,
+                        Status = c.Status,
+                        AdminReply = c.AdminReply,
+                        CreatedAt = c.CreatedAt,
+                        RepliedAt = c.RepliedAt
+                    })
+                    .ToListAsync()
+            };
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ContactDetails(int id)
+        {
+            var ticket = await _context.ContactInquiries
+                .AsNoTracking()
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.ContactInquiryId == id);
+
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            var replies = await _context.ContactInquiryReplies
+                .AsNoTracking()
+                .Where(r => r.ContactInquiryId == id)
+                .OrderBy(r => r.CreatedAt)
+                .ToListAsync();
+
+            var model = new ContactDetailsViewModel
+            {
+                Ticket = ticket,
+                Replies = replies,
+                ReplyForm = new ReplyCreateViewModel { ContactInquiryId = id }
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PostReply(ReplyCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return RedirectToAction("ContactDetails", new { id = model.ContactInquiryId });
+            }
+
+            var ticket = await _context.ContactInquiries.FirstOrDefaultAsync(c => c.ContactInquiryId == model.ContactInquiryId);
+            if (ticket == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            var reply = new ContactInquiryReply
+            {
+                ContactInquiryId = model.ContactInquiryId,
+                Message = model.Message.Trim(),
+                UserId = user.Id,
+                IsFromAdmin = false
+            };
+
+            _context.Add(reply);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ContactDetails", new { id = model.ContactInquiryId });
         }
 
         [Authorize]
@@ -154,9 +305,7 @@ namespace Tourbooking.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            var paymentMethod = string.Equals(model.PaymentMethod, "BankTransfer", StringComparison.OrdinalIgnoreCase)
-                ? "BankTransfer"
-                : "Card";
+            var paymentMethod = "BankTransfer";
 
             if (!ModelState.IsValid)
             {
@@ -170,7 +319,7 @@ namespace Tourbooking.Controllers
             const decimal serviceFee = 45000m;
             const decimal localTax = 120000m;
             var total = (tour.Price * model.GuestCount) + serviceFee + localTax;
-            var paymentStatus = paymentMethod == "BankTransfer" ? "PendingConfirmation" : "Pending";
+            var paymentStatus = "PendingConfirmation";
 
             var booking = new Booking
             {
@@ -185,6 +334,10 @@ namespace Tourbooking.Controllers
                 Status = paymentStatus
             };
 
+            var bankCode = _configuration["BankTransfer:BankCode"];
+            var accountNumber = _configuration["BankTransfer:AccountNumber"];
+            var accountName = _configuration["BankTransfer:AccountName"];
+
             var payment = new Payment
             {
                 Booking = booking,
@@ -192,20 +345,171 @@ namespace Tourbooking.Controllers
                 Amount = total,
                 Method = paymentMethod,
                 Status = paymentStatus,
-                Provider = paymentMethod == "Card" ? "MoMo" : null,
-                TransactionCode = model.TransactionCode?.Trim(),
-                BankName = paymentMethod == "BankTransfer" ? model.BankName?.Trim() : null,
-                BankAccountName = paymentMethod == "BankTransfer" ? booking.FullName : null,
-                BankAccountNumber = paymentMethod == "BankTransfer" ? model.BankAccountNumber?.Trim() : null,
-                BankReference = paymentMethod == "BankTransfer" ? model.BankReference?.Trim() : null
+                Provider = null,
+                TransactionCode = null,
+                BankName = bankCode?.Trim(),
+                BankAccountName = accountName?.Trim(),
+                BankAccountNumber = accountNumber?.Trim(),
+                BankReference = null
             };
 
             _context.Bookings.Add(booking);
             _context.Payments.Add(payment);
             await _context.SaveChangesAsync();
 
-            TempData["BookingSuccess"] = "Đặt tour thành công. Cảm ơn bạn đã đặt chỗ!";
-            return RedirectToAction("Index", "Home");
+            if (string.IsNullOrWhiteSpace(payment.BankReference))
+            {
+                payment.BankReference = $"VOY-{booking.BookingId}";
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["BookingSuccess"] = "Đặt tour thành công. Vui lòng thanh toán để hoàn tất.";
+            return RedirectToAction(nameof(Payment), new { bookingId = booking.BookingId });
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Payment(int bookingId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var booking = await _context.Bookings
+                .AsNoTracking()
+                .Include(b => b.Tour)
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.UserId == user.Id);
+
+            if (booking == null)
+            {
+                TempData["BookingError"] = "Không tìm thấy booking để thanh toán.";
+                return RedirectToAction("Bookings", "Account");
+            }
+
+            var payment = await _context.Payments
+                .AsNoTracking()
+                .Where(p => p.BookingId == bookingId)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (payment == null)
+            {
+                TempData["BookingError"] = "Không tìm thấy thông tin thanh toán.";
+                return RedirectToAction("Bookings", "Account");
+            }
+
+            var bankCode = _configuration["BankTransfer:BankCode"]
+                           ?? payment.BankName
+                           ?? "BIDV";
+
+            var accountNumber = _configuration["BankTransfer:AccountNumber"]
+                                ?? payment.BankAccountNumber
+                                ?? "";
+
+            var accountName = _configuration["BankTransfer:AccountName"]
+                              ?? payment.BankAccountName
+                              ?? "";
+
+            var addInfo = payment.BankReference;
+            if (string.IsNullOrWhiteSpace(addInfo))
+            {
+                addInfo = $"VOY-{booking.BookingId}";
+            }
+
+            var amount = (int)Math.Max(0m, decimal.Round(payment.Amount, 0));
+            var qrUrl = string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(bankCode) && !string.IsNullOrWhiteSpace(accountNumber))
+            {
+                qrUrl = $"https://api.vietqr.io/image/{bankCode}-{accountNumber}-compact2.png?amount={amount}";
+
+                if (!string.IsNullOrWhiteSpace(addInfo))
+                {
+                    qrUrl += "&addInfo=" + Uri.EscapeDataString(addInfo);
+                }
+
+                if (!string.IsNullOrWhiteSpace(accountName))
+                {
+                    qrUrl += "&accountName=" + Uri.EscapeDataString(accountName);
+                }
+            }
+
+            var model = new PaymentPageViewModel
+            {
+                BookingId = booking.BookingId,
+                TourName = booking.Tour?.Name ?? "Tour",
+                TourLocation = booking.Tour?.Location ?? string.Empty,
+                TravelDate = booking.TravelDate,
+                GuestCount = booking.GuestCount,
+                Amount = payment.Amount,
+                PaymentMethod = payment.Method,
+                BankCode = bankCode,
+                AccountNumber = accountNumber,
+                AccountName = accountName,
+                AddInfo = addInfo,
+                QrImageUrl = string.IsNullOrWhiteSpace(qrUrl) ? Url.Content("~/images/qrthanhtoan.jpg") : qrUrl
+            };
+
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(int bookingId, string? transactionCode)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var booking = await _context.Bookings
+                .FirstOrDefaultAsync(b => b.BookingId == bookingId && b.UserId == user.Id);
+
+            if (booking == null)
+            {
+                TempData["PaymentError"] = "Không tìm thấy booking để xác nhận thanh toán.";
+                return RedirectToAction(nameof(Payment), new { bookingId });
+            }
+
+            if (string.Equals(booking.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["PaymentError"] = "Booking đã bị hủy, không thể xác nhận thanh toán.";
+                return RedirectToAction(nameof(Payment), new { bookingId });
+            }
+
+            var payment = await _context.Payments
+                .Where(p => p.BookingId == bookingId)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (payment == null)
+            {
+                TempData["PaymentError"] = "Không tìm thấy thông tin thanh toán.";
+                return RedirectToAction(nameof(Payment), new { bookingId });
+            }
+
+            var code = string.IsNullOrWhiteSpace(transactionCode) ? null : transactionCode.Trim();
+            if (!string.IsNullOrWhiteSpace(code))
+            {
+                payment.TransactionCode = code;
+            }
+
+            payment.PaidAt = DateTime.UtcNow;
+            payment.Status = "Processing";
+
+            if (!string.Equals(booking.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+            {
+                booking.Status = "Processing";
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["BookingSuccess"] = "Đặt tour thành công. Đã ghi nhận thanh toán.";
+            return RedirectToAction(nameof(Index));
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
