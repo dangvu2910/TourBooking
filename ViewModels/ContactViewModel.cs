@@ -17,6 +17,11 @@ public class ContactViewModel
     public string? PhoneNumber { get; set; }
 
     [Required]
+    [StringLength(120, ErrorMessage = "Tiêu đề quá dài")]
+    [Display(Name = "Tiêu đề")]
+    public string Subject { get; set; } = string.Empty;
+
+    [Required]
     [StringLength(1000, ErrorMessage = "Nội dung quá dài")]
     [Display(Name = "Nội dung")]
     public string Message { get; set; } = string.Empty;

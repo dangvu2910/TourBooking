@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Tourbooking.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260601034919_AddContactInquiries")]
+    partial class AddContactInquiries
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -365,41 +368,6 @@ namespace Tourbooking.Data.Migrations
                     b.ToTable("ContactInquiries");
                 });
 
-            modelBuilder.Entity("Tourbooking.Models.ContactInquiryReply", b =>
-                {
-                    b.Property<int>("ContactInquiryReplyId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactInquiryReplyId"));
-
-                    b.Property<int>("ContactInquiryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsFromAdmin")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<string>("UserId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("ContactInquiryReplyId");
-
-                    b.HasIndex("ContactInquiryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ContactInquiryReplies");
-                });
-
             modelBuilder.Entity("Tourbooking.Models.Payment", b =>
                 {
                     b.Property<int>("PaymentId")
@@ -659,24 +627,6 @@ namespace Tourbooking.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Tourbooking.Models.ContactInquiryReply", b =>
-                {
-                    b.HasOne("Tourbooking.Models.ContactInquiry", "ContactInquiry")
-                        .WithMany()
-                        .HasForeignKey("ContactInquiryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Tourbooking.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("ContactInquiry");
 
                     b.Navigation("User");
                 });

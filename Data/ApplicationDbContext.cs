@@ -14,6 +14,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Payment> Payments { get; set; }
     public DbSet<TourReview> TourReviews { get; set; }
     public DbSet<TourReviewVote> TourReviewVotes { get; set; }
+    public DbSet<ContactInquiry> ContactInquiries { get; set; }
+    public DbSet<ContactInquiryReply> ContactInquiryReplies { get; set; }
     
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -77,6 +79,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(v => v.User)
             .WithMany()
             .HasForeignKey(v => v.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<ContactInquiry>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Entity<ContactInquiryReply>()
+            .HasOne(r => r.ContactInquiry)
+            .WithMany()
+            .HasForeignKey(r => r.ContactInquiryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<ContactInquiryReply>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.NoAction);
 
         
