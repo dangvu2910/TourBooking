@@ -56,11 +56,11 @@ namespace Tourbooking.Controllers
 
             var promoBanners = promoCandidates.Select((tour, index) => new HomePromoBanner
             {
-                Title = index == 0 ? "Khuyen mai he ruc ro" : "Goi gia dinh tiet kiem",
+                Title = index == 0 ? "Khuyến mãi hè rực rỡ" : "Gói gia đình tiết kiệm",
                 Description = index == 0
-                    ? "Giam den 30% cho tour bien dao khi dat som."
-                    : "Mien phi tre nho duoi 5 tuoi cho cac tour cuoi tuan.",
-                Cta = index == 0 ? "Dat ngay" : "Lien he tu van",
+                    ? "Giảm đến 30% cho tour biển đảo khi đặt sớm."
+                    : "Miễn phí trẻ nhỏ dưới 5 tuổi cho các tour cuối tuần.",
+                Cta = index == 0 ? "Đặt ngay" : "Liên hệ tư vấn",
                 ImageUrl = NormalizeImageUrl(tour.ImageUrl) ?? string.Empty,
                 TourId = tour.TourId
             }).ToList();
