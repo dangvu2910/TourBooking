@@ -77,6 +77,40 @@
 
         return "/images/" + imageUrl.TrimStart('/');
     }
+
+    string GetDurationLabel(string? tourName)
+    {
+        if (string.IsNullOrWhiteSpace(tourName))
+        {
+            return "3N2Đ";
+        }
+
+        var durations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Khám phá Đà Lạt mộng mơ"] = "3N2Đ",
+            ["Tour nghỉ dưỡng Phú Quốc"] = "4N3Đ",
+            ["Hành trình di sản Hội An"] = "3N2Đ",
+            ["Tour biển Nha Trang"] = "3N2Đ",
+            ["Sapa mùa mây"] = "3N2Đ",
+            ["Khám phá Hà Giang"] = "4N3Đ",
+            ["Du lịch Côn Đảo"] = "3N2Đ",
+            ["Tour khám phá Huế"] = "3N2Đ",
+            ["Đà Nẵng năng động"] = "3N2Đ",
+            ["Khám phá Mộc Châu"] = "2N1Đ",
+            ["Tour miền Tây sông nước"] = "2N1Đ",
+            ["Khám phá đảo Bình Ba"] = "3N2Đ",
+            ["Hành trình Vịnh Hạ Long"] = "2N1Đ",
+            ["Tour trekking Tà Năng"] = "2N1Đ",
+            ["Khám phá đảo Lý Sơn"] = "3N2Đ",
+            ["Tour biển Quy Nhơn"] = "3N2Đ",
+            ["Khám phá Buôn Ma Thuột"] = "3N2Đ",
+            ["Tour nghỉ dưỡng Vũng Tàu"] = "2N1Đ"
+        };
+
+        return durations.TryGetValue(tourName.Trim(), out var duration)
+            ? duration
+            : "3N2Đ";
+    }
 }
 
 <link rel="stylesheet" href="~/css/tours.css" asp-append-version="true" />
@@ -174,9 +208,11 @@
                                 </div>
                                 <div class="tour-info">
                                     <h3><span class="tour-title">@item.Name</span><span>★ 4.8</span></h3>
-                                    <p>@TruncateDescription(item.Description)</p>
+                                    <div class="tour-tags">
+                                        <span class="tour-tag">@item.Location</span>
+                                        <span class="tour-tag">@GetDurationLabel(item.Name)</span>
+                                    </div>
                                     <div class="tour-price">
-                                        <small>BẮT ĐẦU TỪ</small>
                                         <strong>@item.Price.ToString("C0", vnd)</strong>
                                         <span class="tour-cta">→</span>
                                     </div>
